@@ -33,11 +33,11 @@ enum TaskStaus {
 impl std::fmt::Display for TaskStaus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status = match self {
-            TaskStaus::RUNNING => "Running",
-            TaskStaus::PAUSED => "Paused",
-            TaskStaus::QUEUED => "Queued",
-            TaskStaus::COMPLETED => "Completed",
-            TaskStaus::FAILED => "Failed",
+            TaskStaus::RUNNING => "RUNNING",
+            TaskStaus::PAUSED => "PAUSED",
+            TaskStaus::QUEUED => "QUEUED",
+            TaskStaus::COMPLETED => "COMPLETED",
+            TaskStaus::FAILED => "FAILED",
         };
         write!(f, "{}", status)
     }
@@ -111,6 +111,126 @@ impl App {
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
+            Task {
+                name: "Task 6".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 7".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 8".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 9".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 10".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 11".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 12".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 13".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 14".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 15".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 16".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 17".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 18".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 19".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
+            Task {
+                name: "Task 20".to_string(),
+                speed: 0.0,
+                size: 0.0,
+                progress: 0.0,
+                eta: "N/A".to_string(),
+                status: TaskStaus::FAILED,
+            },
         ];
         Self {
             table_state: TableState::default(),
@@ -149,10 +269,11 @@ impl App {
     }
 
     fn draw(&mut self, frame: &mut Frame) {
-        let screen = Block::default()
-            .borders(Borders::ALL)
-            .border_type(BorderType::Plain)
-            .style(Style::default().fg(tailwind::NEUTRAL.c500));
+        let screen = Block::default().borders(Borders::NONE).style(
+            Style::default()
+                .fg(tailwind::NEUTRAL.c500)
+                .bg(tailwind::NEUTRAL.c950),
+        );
 
         frame.render_widget(&screen, frame.area());
 
@@ -182,7 +303,9 @@ impl App {
 
         self.render_tabs(frame, action_layout[0]);
         self.render_action_button(frame, action_layout[1]);
+
         self.render_table(frame, content_layout[1]);
+        self.render_scrollbar(frame, content_layout[1]);
 
         self.render_div(frame, outer_layout[1]);
     }
@@ -198,7 +321,7 @@ impl App {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .border_type(BorderType::Plain)
+                    .border_type(BorderType::Thick)
                     .border_style(Style::default().fg(tailwind::GREEN.c500)),
             );
         frame.render_widget(button, area);
@@ -208,6 +331,7 @@ impl App {
         let div = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Plain)
+            .border_style(Style::default().fg(tailwind::PURPLE.c950))
             .style(Style::default().fg(tailwind::NEUTRAL.c500));
         frame.render_widget(div, area);
     }
@@ -218,7 +342,8 @@ impl App {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .border_type(BorderType::Plain),
+                    .border_type(BorderType::Plain)
+                    .border_style(Style::default().fg(tailwind::PURPLE.c950)),
             )
             .highlight_style(
                 Style::default()
@@ -233,28 +358,29 @@ impl App {
 
     fn render_table(&mut self, frame: &mut Frame, area: Rect) {
         let header_style = Style::default()
-            .fg(tailwind::NEUTRAL.c200)
-            .bg(tailwind::NEUTRAL.c900);
+            .fg(tailwind::PURPLE.c100)
+            .bg(tailwind::PURPLE.c950);
         let selected_row_style = Style::default()
             .add_modifier(Modifier::REVERSED)
-            .fg(tailwind::PURPLE.c500);
+            .fg(tailwind::PURPLE.c800)
+            .bg(tailwind::PURPLE.c100);
         let selected_col_style = Style::default().fg(tailwind::PURPLE.c600);
         let selected_cell_style = Style::default()
             .add_modifier(Modifier::REVERSED)
-            .fg(tailwind::PURPLE.c600);
+            .fg(tailwind::PURPLE.c800);
 
         let header = ["Name", "Speed", "Size", "Progress", "ETA", "Status"]
             .into_iter()
-            .map(|c| Cell::from(Text::from(format!("\n{}\n", c.to_ascii_uppercase()))))
+            .map(|c| Cell::from(Text::from(format!("{}", c.to_ascii_uppercase()))))
             .collect::<Row>()
             .style(header_style)
-            .height(3)
-            .bottom_margin(1);
+            .height(1);
         let rows = self.items.iter().enumerate().map(|(i, data)| {
             let color = match i % 2 {
                 0 => tailwind::NEUTRAL.c900,
                 _ => tailwind::NEUTRAL.c950,
             };
+
             let item = [
                 Text::from(format!("{}", data.name)),
                 Text::from(format!("{:.2} MB/s", data.speed)),
@@ -285,8 +411,8 @@ impl App {
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
                 .title(" TASTKS ")
-                .border_style(Style::default().fg(tailwind::NEUTRAL.c500))
-                .padding(Padding::uniform(1)),
+                .border_style(Style::default().fg(tailwind::PURPLE.c950))
+                .padding(Padding::symmetric(0, 1)),
         )
         .header(header)
         .row_highlight_style(selected_row_style)
@@ -295,6 +421,20 @@ impl App {
         .highlight_symbol(Text::from("  "))
         .highlight_spacing(HighlightSpacing::Always);
         frame.render_stateful_widget(t, area, &mut self.table_state);
+    }
+
+    fn render_scrollbar(&mut self, frame: &mut Frame, area: Rect) {
+        frame.render_stateful_widget(
+            Scrollbar::default()
+                .orientation(ScrollbarOrientation::VerticalRight)
+                .begin_symbol(None)
+                .end_symbol(None),
+            area.inner(Margin {
+                vertical: 1,
+                horizontal: 1,
+            }),
+            &mut self.scrollbar_state,
+        );
     }
 
     fn next_row(&mut self) {

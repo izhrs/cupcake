@@ -61,6 +61,7 @@ struct App {
 enum SelectedTab {
     #[default]
     Single,
+    Batch,
     Playlist,
     Settings,
     About,
@@ -345,7 +346,7 @@ impl App {
     }
 
     fn render_tabs(&self, frame: &mut Frame, area: Rect) {
-        let tabs = Tabs::new(vec!["SINGLE", "PLAYLIST", "SETTINGS", "ABOUT"])
+        let tabs = Tabs::new(vec!["SINGLE", "BATCH", "PLAYLIST", "SETTINGS", "ABOUT"])
             .select(self.selected_tab as usize)
             .block(
                 Block::default()
@@ -406,7 +407,7 @@ impl App {
         let t = Table::new(
             rows,
             [
-                Constraint::Min(5),     // name
+                Constraint::Min(30),    // name
                 Constraint::Length(15), // speed
                 Constraint::Length(15), // size
                 Constraint::Length(10), // progress
@@ -420,7 +421,7 @@ impl App {
                 .border_type(BorderType::Plain)
                 .title(" TASTKS ")
                 .border_style(Style::default().fg(tailwind::PURPLE.c950))
-                .padding(Padding::symmetric(0, 1)),
+                .padding(Padding::new(0, 0, 1, 0)),
         )
         .header(header)
         .row_highlight_style(selected_row_style)
@@ -506,9 +507,10 @@ impl SelectedTab {
         let previous_index = current_index.saturating_sub(1);
         match previous_index {
             0 => SelectedTab::Single,
-            1 => SelectedTab::Playlist,
-            2 => SelectedTab::Settings,
-            3 => SelectedTab::About,
+            1 => SelectedTab::Batch,
+            2 => SelectedTab::Playlist,
+            3 => SelectedTab::Settings,
+            4 => SelectedTab::About,
             _ => SelectedTab::Single,
         }
     }
@@ -519,9 +521,10 @@ impl SelectedTab {
         let next_index = current_index.saturating_add(1);
         match next_index {
             0 => SelectedTab::Single,
-            1 => SelectedTab::Playlist,
-            2 => SelectedTab::Settings,
-            3 => SelectedTab::About,
+            1 => SelectedTab::Batch,
+            2 => SelectedTab::Playlist,
+            3 => SelectedTab::Settings,
+            4 => SelectedTab::About,
             _ => SelectedTab::Single,
         }
     }

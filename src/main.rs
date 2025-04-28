@@ -4,7 +4,7 @@ use crossterm::event::KeyModifiers;
 use ratatui::{
     DefaultTerminal, Frame,
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
-    layout::{Constraint, Layout, Margin, Rect},
+    layout::{Alignment, Constraint, Layout, Margin, Rect},
     style::{self, Color, Modifier, Style, Stylize, palette::tailwind},
     symbols::block,
     text::Text,
@@ -30,6 +30,18 @@ enum TaskStaus {
     FAILED,
 }
 
+impl std::fmt::Display for TaskStaus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let status = match self {
+            TaskStaus::RUNNING => "Running",
+            TaskStaus::PAUSED => "Paused",
+            TaskStaus::QUEUED => "Queued",
+            TaskStaus::COMPLETED => "Completed",
+            TaskStaus::FAILED => "Failed",
+        };
+        write!(f, "{}", status)
+    }
+}
 struct Task {
     name: String,
     speed: f32,
@@ -53,6 +65,7 @@ enum SelectedTab {
     Single,
     Playlist,
     Settings,
+    About,
 }
 
 impl App {
@@ -122,6 +135,12 @@ impl App {
                         KeyCode::BackTab => {
                             self.selected_tab = self.selected_tab.previous();
                         }
+                        KeyCode::Up => {
+                            self.previous_row();
+                        }
+                        KeyCode::Down => {
+                            self.next_row();
+                        }
                         _ => {}
                     }
                 }
@@ -129,10 +148,10 @@ impl App {
         }
     }
 
-    fn draw(&self, frame: &mut Frame) {
+    fn draw(&mut self, frame: &mut Frame) {
         let screen = Block::default()
             .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
+            .border_type(BorderType::Plain)
             .style(Style::default().fg(tailwind::NEUTRAL.c500));
 
         frame.render_widget(&screen, frame.area());
@@ -153,35 +172,159 @@ impl App {
             .constraints(vec![Constraint::Length(3), Constraint::Min(5)])
             .split(inner_layout[1]);
 
+        let action_layout = Layout::default()
+            .direction(ratatui::layout::Direction::Horizontal)
+            .constraints(vec![Constraint::Min(38), Constraint::Max(12)])
+            .flex(ratatui::layout::Flex::SpaceBetween)
+            .split(content_layout[0]);
+
         self.render_div(frame, inner_layout[0]);
 
-        self.render_tabs(frame, content_layout[0]);
-        self.render_div(frame, content_layout[1]);
+        self.render_tabs(frame, action_layout[0]);
+        self.render_action_button(frame, action_layout[1]);
+        self.render_table(frame, content_layout[1]);
 
         self.render_div(frame, outer_layout[1]);
+    }
+
+    fn render_action_button(&self, frame: &mut Frame, area: Rect) {
+        let button = Paragraph::new("ADD TASK")
+            .style(
+                Style::default()
+                    .fg(tailwind::GREEN.c500)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .alignment(Alignment::Center)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Plain)
+                    .border_style(Style::default().fg(tailwind::GREEN.c500)),
+            );
+        frame.render_widget(button, area);
     }
 
     fn render_div(&self, frame: &mut Frame, area: Rect) {
         let div = Block::default()
             .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
+            .border_type(BorderType::Plain)
             .style(Style::default().fg(tailwind::NEUTRAL.c500));
         frame.render_widget(div, area);
     }
 
     fn render_tabs(&self, frame: &mut Frame, area: Rect) {
-        let tabs = Tabs::new(vec!["SIN", "COS", "TAN"])
+        let tabs = Tabs::new(vec!["SINGLE", "PLAYLIST", "SETTINGS", "ABOUT"])
             .select(self.selected_tab as usize)
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded),
+                    .border_type(BorderType::Plain),
             )
-            .highlight_style(Style::default().fg(tailwind::PURPLE.c500))
+            .highlight_style(
+                Style::default()
+                    .fg(tailwind::PURPLE.c500)
+                    .add_modifier(Modifier::BOLD),
+            )
             .divider("|")
             .style(Style::default());
 
         frame.render_widget(tabs, area);
+    }
+
+    fn render_table(&mut self, frame: &mut Frame, area: Rect) {
+        let header_style = Style::default()
+            .fg(tailwind::NEUTRAL.c200)
+            .bg(tailwind::NEUTRAL.c900);
+        let selected_row_style = Style::default()
+            .add_modifier(Modifier::REVERSED)
+            .fg(tailwind::PURPLE.c500);
+        let selected_col_style = Style::default().fg(tailwind::PURPLE.c600);
+        let selected_cell_style = Style::default()
+            .add_modifier(Modifier::REVERSED)
+            .fg(tailwind::PURPLE.c600);
+
+        let header = ["Name", "Speed", "Size", "Progress", "ETA", "Status"]
+            .into_iter()
+            .map(|c| Cell::from(Text::from(format!("\n{}\n", c.to_ascii_uppercase()))))
+            .collect::<Row>()
+            .style(header_style)
+            .height(3)
+            .bottom_margin(1);
+        let rows = self.items.iter().enumerate().map(|(i, data)| {
+            let color = match i % 2 {
+                0 => tailwind::NEUTRAL.c900,
+                _ => tailwind::NEUTRAL.c950,
+            };
+            let item = [
+                Text::from(format!("{}", data.name)),
+                Text::from(format!("{:.2} MB/s", data.speed)),
+                Text::from(format!("{:.2} MB", data.size)),
+                Text::from(format!("{:.2} %", data.progress * 100.0)),
+                Text::from(data.eta.clone()),
+                Text::from(data.status.to_string()),
+            ];
+            item.into_iter()
+                .map(|content| Cell::from(Text::from(format!("\n{}\n", content))))
+                .collect::<Row>()
+                .style(Style::new().fg(tailwind::NEUTRAL.c100).bg(color))
+                .height(3)
+        });
+        let t = Table::new(
+            rows,
+            [
+                Constraint::Min(5),     // name
+                Constraint::Length(10), // speed
+                Constraint::Length(10), // size
+                Constraint::Length(10), // progress
+                Constraint::Length(10), // eta
+                Constraint::Length(15), // status
+            ],
+        )
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Plain)
+                .title(" TASTKS ")
+                .border_style(Style::default().fg(tailwind::NEUTRAL.c500))
+                .padding(Padding::uniform(1)),
+        )
+        .header(header)
+        .row_highlight_style(selected_row_style)
+        .column_highlight_style(selected_col_style)
+        .cell_highlight_style(selected_cell_style)
+        .highlight_symbol(Text::from("  "))
+        .highlight_spacing(HighlightSpacing::Always);
+        frame.render_stateful_widget(t, area, &mut self.table_state);
+    }
+
+    fn next_row(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => {
+                if i >= self.items.len() - 1 {
+                    0
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.table_state.select(Some(i));
+        self.scrollbar_state = self.scrollbar_state.position(i * 4);
+    }
+
+    fn previous_row(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    self.items.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.table_state.select(Some(i));
+        self.scrollbar_state = self.scrollbar_state.position(i * 4);
     }
 }
 
@@ -194,6 +337,7 @@ impl SelectedTab {
             0 => SelectedTab::Single,
             1 => SelectedTab::Playlist,
             2 => SelectedTab::Settings,
+            3 => SelectedTab::About,
             _ => SelectedTab::Single,
         }
     }
@@ -206,6 +350,7 @@ impl SelectedTab {
             0 => SelectedTab::Single,
             1 => SelectedTab::Playlist,
             2 => SelectedTab::Settings,
+            3 => SelectedTab::About,
             _ => SelectedTab::Single,
         }
     }

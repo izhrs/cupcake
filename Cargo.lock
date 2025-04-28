@@ -180,7 +180,6 @@ dependencies = [
  "color-eyre",
  "crossterm 0.29.0",
  "ratatui",
- "style",
 ]
 
 [[package]]
@@ -681,12 +680,6 @@ dependencies = [
  "rustversion",
  "syn",
 ]
-
-[[package]]
-name = "style"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b3baeb5ebb9b755879655f7108819cf4bf0a2868f4b301a02ec7a9b13f8580f"
 
 [[package]]
 name = "syn"

@@ -5,15 +5,14 @@ use ratatui::{
     DefaultTerminal, Frame,
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
     layout::{Constraint, Layout, Margin, Rect},
-    style::{self, Color, Modifier, Style, Stylize},
+    style::{self, Color, Modifier, Style, Stylize, palette::tailwind},
+    symbols::block,
     text::Text,
     widgets::{
         Block, BorderType, Borders, Cell, HighlightSpacing, Padding, Paragraph, Row, Scrollbar,
-        ScrollbarOrientation, ScrollbarState, Table, TableState,
+        ScrollbarOrientation, ScrollbarState, Table, TableState, Tabs,
     },
 };
-
-use style::palette::tailwind;
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -45,6 +44,15 @@ struct App {
     scrollbar_state: ScrollbarState,
     progress: f32,
     items: Vec<Task>,
+    selected_tab: SelectedTab,
+}
+
+#[derive(Default, Clone, Copy)]
+enum SelectedTab {
+    #[default]
+    Single,
+    Playlist,
+    Settings,
 }
 
 impl App {
@@ -96,6 +104,7 @@ impl App {
             scrollbar_state: ScrollbarState::default(),
             progress: 0.0,
             items: dummy_items,
+            selected_tab: SelectedTab::default(),
         }
     }
 
@@ -107,6 +116,12 @@ impl App {
                 if key.kind == KeyEventKind::Press {
                     match key.code {
                         KeyCode::Esc | KeyCode::Char('q') => return Ok(()),
+                        KeyCode::Tab => {
+                            self.selected_tab = self.selected_tab.next();
+                        }
+                        KeyCode::BackTab => {
+                            self.selected_tab = self.selected_tab.previous();
+                        }
                         _ => {}
                     }
                 }
@@ -135,12 +150,12 @@ impl App {
 
         let content_layout = Layout::default()
             .direction(ratatui::layout::Direction::Vertical)
-            .constraints(vec![Constraint::Length(4), Constraint::Min(5)])
+            .constraints(vec![Constraint::Length(3), Constraint::Min(5)])
             .split(inner_layout[1]);
 
         self.render_div(frame, inner_layout[0]);
 
-        self.render_div(frame, content_layout[0]);
+        self.render_tabs(frame, content_layout[0]);
         self.render_div(frame, content_layout[1]);
 
         self.render_div(frame, outer_layout[1]);
@@ -152,5 +167,46 @@ impl App {
             .border_type(BorderType::Rounded)
             .style(Style::default().fg(tailwind::NEUTRAL.c500));
         frame.render_widget(div, area);
+    }
+
+    fn render_tabs(&self, frame: &mut Frame, area: Rect) {
+        let tabs = Tabs::new(vec!["SIN", "COS", "TAN"])
+            .select(self.selected_tab as usize)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded),
+            )
+            .highlight_style(Style::default().fg(tailwind::PURPLE.c500))
+            .divider("|")
+            .style(Style::default());
+
+        frame.render_widget(tabs, area);
+    }
+}
+
+impl SelectedTab {
+    /// Get the previous tab, if there is no previous tab return the current tab.
+    fn previous(self) -> Self {
+        let current_index = self as usize;
+        let previous_index = current_index.saturating_sub(1);
+        match previous_index {
+            0 => SelectedTab::Single,
+            1 => SelectedTab::Playlist,
+            2 => SelectedTab::Settings,
+            _ => SelectedTab::Single,
+        }
+    }
+
+    /// Get the next tab, if there is no next tab return the current tab.
+    fn next(self) -> Self {
+        let current_index = self as usize;
+        let next_index = current_index.saturating_add(1);
+        match next_index {
+            0 => SelectedTab::Single,
+            1 => SelectedTab::Playlist,
+            2 => SelectedTab::Settings,
+            _ => SelectedTab::Single,
+        }
     }
 }

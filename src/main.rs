@@ -1,16 +1,14 @@
 use color_eyre::Result;
-use crossterm::event::KeyModifiers;
 
 use ratatui::{
     DefaultTerminal, Frame,
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
     layout::{Alignment, Constraint, Layout, Margin, Rect},
-    style::{self, Color, Modifier, Style, Stylize, palette::tailwind},
-    symbols::block,
+    style::{Modifier, Style, palette::tailwind},
     text::Text,
     widgets::{
-        Block, BorderType, Borders, Cell, HighlightSpacing, Padding, Paragraph, Row, Scrollbar,
-        ScrollbarOrientation, ScrollbarState, Table, TableState, Tabs,
+        Block, BorderType, Borders, Cell, Gauge, HighlightSpacing, Padding, Paragraph, Row,
+        Scrollbar, ScrollbarOrientation, ScrollbarState, Table, TableState, Tabs,
     },
 };
 
@@ -72,161 +70,161 @@ impl App {
     fn new() -> Self {
         let dummy_items = vec![
             Task {
-                name: "Task 1".to_string(),
+                name: "ubuntu-22.04-desktop-amd64.iso".to_string(),
                 speed: 1.0,
-                size: 100.0,
+                size: 3700.0,
                 progress: 0.5,
                 eta: "1m".to_string(),
                 status: TaskStaus::RUNNING,
             },
             Task {
-                name: "Task 2".to_string(),
+                name: "big_buck_bunny_1080p.mp4".to_string(),
                 speed: 2.0,
-                size: 200.0,
+                size: 825.0,
                 progress: 0.75,
                 eta: "2m".to_string(),
                 status: TaskStaus::PAUSED,
             },
             Task {
-                name: "Task 3".to_string(),
+                name: "node_modules.tar.gz".to_string(),
                 speed: 0.5,
-                size: 50.0,
+                size: 154.0,
                 progress: 0.25,
                 eta: "3m".to_string(),
                 status: TaskStaus::QUEUED,
             },
             Task {
-                name: "Task 4".to_string(),
+                name: "linux-kernel-6.2.0.tar".to_string(),
                 speed: 3.0,
-                size: 300.0,
+                size: 1200.0,
                 progress: 1.0,
                 eta: "0m".to_string(),
                 status: TaskStaus::COMPLETED,
             },
             Task {
-                name: "Task 5".to_string(),
+                name: "game_assets.zip".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 4500.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 6".to_string(),
+                name: "fedora-38-x86_64.iso".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 2800.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 7".to_string(),
+                name: "movie_collection.tar".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 15000.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 8".to_string(),
+                name: "project_backup_2023-10-15.zip".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 750.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 9".to_string(),
+                name: "archlinux-2023.05.01-x86_64.iso".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 850.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 10".to_string(),
+                name: "4k_nature_documentary.mkv".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 12000.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 11".to_string(),
+                name: "debian-11-amd64.iso".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 3200.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 12".to_string(),
+                name: "sample_video_1080p_60fps.mp4".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 1500.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 13".to_string(),
+                name: "website_templates.zip".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 225.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 14".to_string(),
+                name: "react_native_project.tar.gz".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 180.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 15".to_string(),
+                name: "centos-stream-9-x86_64.iso".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 2500.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 16".to_string(),
+                name: "conference_recordings.tar".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 8500.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 17".to_string(),
+                name: "anime_series_s01_complete.mkv".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 5800.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 18".to_string(),
+                name: "docker_images.tar".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 3400.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 19".to_string(),
+                name: "kali-linux-2023.2-live.iso".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 4100.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
             },
             Task {
-                name: "Task 20".to_string(),
+                name: "machine_learning_datasets.zip".to_string(),
                 speed: 0.0,
-                size: 0.0,
+                size: 2700.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
                 status: TaskStaus::FAILED,
@@ -260,6 +258,16 @@ impl App {
                         }
                         KeyCode::Down => {
                             self.next_row();
+                        }
+                        KeyCode::Right => {
+                            if self.progress < 100.0 {
+                                self.progress += 1.0;
+                            }
+                        }
+                        KeyCode::Left => {
+                            if self.progress > 0.0 {
+                                self.progress -= 1.0;
+                            }
                         }
                         _ => {}
                     }
@@ -307,7 +315,7 @@ impl App {
         self.render_table(frame, content_layout[1]);
         self.render_scrollbar(frame, content_layout[1]);
 
-        self.render_div(frame, outer_layout[1]);
+        self.render_progress_bar(frame, outer_layout[1]);
     }
 
     fn render_action_button(&self, frame: &mut Frame, area: Rect) {
@@ -384,8 +392,8 @@ impl App {
             let item = [
                 Text::from(format!("{}", data.name)),
                 Text::from(format!("{:.2} MB/s", data.speed)),
-                Text::from(format!("{:.2} MB", data.size)),
-                Text::from(format!("{:.2} %", data.progress * 100.0)),
+                Text::from(format!("{:.0} MB", data.size)),
+                Text::from(format!("{:.0} %", data.progress * 100.0)),
                 Text::from(data.eta.clone()),
                 Text::from(data.status.to_string()),
             ];
@@ -399,8 +407,8 @@ impl App {
             rows,
             [
                 Constraint::Min(5),     // name
-                Constraint::Length(10), // speed
-                Constraint::Length(10), // size
+                Constraint::Length(15), // speed
+                Constraint::Length(15), // size
                 Constraint::Length(10), // progress
                 Constraint::Length(10), // eta
                 Constraint::Length(15), // status
@@ -435,6 +443,29 @@ impl App {
             }),
             &mut self.scrollbar_state,
         );
+    }
+
+    fn render_progress_bar(&self, frame: &mut Frame, area: Rect) {
+        let progress_bar = Gauge::default()
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Plain)
+                    .title(" PROGRESS ")
+                    .border_style(Style::default().fg(tailwind::PURPLE.c950)),
+            )
+            .gauge_style(
+                Style::default()
+                    .fg(match self.progress {
+                        0.0..=25.0 => tailwind::PURPLE.c800,
+                        25.0..=50.0 => tailwind::PURPLE.c700,
+                        50.0..=75.0 => tailwind::PURPLE.c600,
+                        _ => tailwind::PURPLE.c500,
+                    })
+                    .bg(tailwind::PURPLE.c950),
+            )
+            .percent(self.progress as u16);
+        frame.render_widget(progress_bar, area);
     }
 
     fn next_row(&mut self) {

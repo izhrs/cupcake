@@ -21,21 +21,21 @@ fn main() -> Result<()> {
 }
 
 enum TaskStaus {
-    RUNNING,
-    PAUSED,
-    QUEUED,
-    COMPLETED,
-    FAILED,
+    Running,
+    Paused,
+    Queued,
+    Completed,
+    Failed,
 }
 
 impl std::fmt::Display for TaskStaus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status = match self {
-            TaskStaus::RUNNING => "RUNNING",
-            TaskStaus::PAUSED => "PAUSED",
-            TaskStaus::QUEUED => "QUEUED",
-            TaskStaus::COMPLETED => "COMPLETED",
-            TaskStaus::FAILED => "FAILED",
+            TaskStaus::Running => "Running ",
+            TaskStaus::Paused => "Paused",
+            TaskStaus::Queued => "Queued",
+            TaskStaus::Completed => "Completed",
+            TaskStaus::Failed => "Failed",
         };
         write!(f, "{}", status)
     }
@@ -76,7 +76,7 @@ impl App {
                 size: 3700.0,
                 progress: 0.5,
                 eta: "1m".to_string(),
-                status: TaskStaus::RUNNING,
+                status: TaskStaus::Running,
             },
             Task {
                 name: "big_buck_bunny_1080p.mp4".to_string(),
@@ -84,7 +84,7 @@ impl App {
                 size: 825.0,
                 progress: 0.75,
                 eta: "2m".to_string(),
-                status: TaskStaus::PAUSED,
+                status: TaskStaus::Paused,
             },
             Task {
                 name: "node_modules.tar.gz".to_string(),
@@ -92,7 +92,7 @@ impl App {
                 size: 154.0,
                 progress: 0.25,
                 eta: "3m".to_string(),
-                status: TaskStaus::QUEUED,
+                status: TaskStaus::Queued,
             },
             Task {
                 name: "linux-kernel-6.2.0.tar".to_string(),
@@ -100,7 +100,7 @@ impl App {
                 size: 1200.0,
                 progress: 1.0,
                 eta: "0m".to_string(),
-                status: TaskStaus::COMPLETED,
+                status: TaskStaus::Completed,
             },
             Task {
                 name: "game_assets.zip".to_string(),
@@ -108,7 +108,7 @@ impl App {
                 size: 4500.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "fedora-38-x86_64.iso".to_string(),
@@ -116,7 +116,7 @@ impl App {
                 size: 2800.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "movie_collection.tar".to_string(),
@@ -124,7 +124,7 @@ impl App {
                 size: 15000.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "project_backup_2023-10-15.zip".to_string(),
@@ -132,7 +132,7 @@ impl App {
                 size: 750.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "archlinux-2023.05.01-x86_64.iso".to_string(),
@@ -140,7 +140,7 @@ impl App {
                 size: 850.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "4k_nature_documentary.mkv".to_string(),
@@ -148,7 +148,7 @@ impl App {
                 size: 12000.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "debian-11-amd64.iso".to_string(),
@@ -156,7 +156,7 @@ impl App {
                 size: 3200.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "sample_video_1080p_60fps.mp4".to_string(),
@@ -164,7 +164,7 @@ impl App {
                 size: 1500.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "website_templates.zip".to_string(),
@@ -172,7 +172,7 @@ impl App {
                 size: 225.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "react_native_project.tar.gz".to_string(),
@@ -180,7 +180,7 @@ impl App {
                 size: 180.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "centos-stream-9-x86_64.iso".to_string(),
@@ -188,7 +188,7 @@ impl App {
                 size: 2500.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "conference_recordings.tar".to_string(),
@@ -196,7 +196,7 @@ impl App {
                 size: 8500.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "anime_series_s01_complete.mkv".to_string(),
@@ -204,7 +204,7 @@ impl App {
                 size: 5800.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "docker_images.tar".to_string(),
@@ -212,7 +212,7 @@ impl App {
                 size: 3400.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "kali-linux-2023.2-live.iso".to_string(),
@@ -220,7 +220,7 @@ impl App {
                 size: 4100.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
             Task {
                 name: "machine_learning_datasets.zip".to_string(),
@@ -228,7 +228,7 @@ impl App {
                 size: 2700.0,
                 progress: 0.0,
                 eta: "N/A".to_string(),
-                status: TaskStaus::FAILED,
+                status: TaskStaus::Failed,
             },
         ];
         Self {
@@ -380,7 +380,7 @@ impl App {
 
         let header = ["Name", "Speed", "Size", "Progress", "ETA", "Status"]
             .into_iter()
-            .map(|c| Cell::from(Text::from(format!("{}", c.to_ascii_uppercase()))))
+            .map(|c| Cell::from(Text::from(c.to_ascii_uppercase().to_string())))
             .collect::<Row>()
             .style(header_style)
             .height(1);
@@ -391,7 +391,7 @@ impl App {
             };
 
             let item = [
-                Text::from(format!("{}", data.name)),
+                Text::from(data.name.to_string()),
                 Text::from(format!("{:.2} MB/s", data.speed)),
                 Text::from(format!("{:.0} MB", data.size)),
                 Text::from(format!("{:.0} %", data.progress * 100.0)),

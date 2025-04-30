@@ -26,7 +26,7 @@ enum TaskStaus {
     Running,
     Paused,
     Queued,
-    Completed,
+    Finished,
     Failed,
 }
 
@@ -36,7 +36,7 @@ impl std::fmt::Display for TaskStaus {
             TaskStaus::Running => "Running ",
             TaskStaus::Paused => "Paused",
             TaskStaus::Queued => "Queued",
-            TaskStaus::Completed => "Completed",
+            TaskStaus::Finished => "Finished",
             TaskStaus::Failed => "Failed",
         };
         write!(f, "{}", status)
@@ -111,7 +111,7 @@ impl App {
                 size: 1200.0,
                 progress: 1.0,
                 eta: "0m".to_string(),
-                status: TaskStaus::Completed,
+                status: TaskStaus::Finished,
             },
             Task {
                 name: "game_assets.zip".to_string(),
@@ -440,15 +440,15 @@ impl App {
         let button = Paragraph::new("ADD TASK")
             .style(
                 Style::default()
-                    .fg(tailwind::GREEN.c500)
+                    .fg(tailwind::GREEN.c600)
                     .add_modifier(Modifier::BOLD),
             )
             .alignment(Alignment::Center)
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .border_type(BorderType::Thick)
-                    .border_style(Style::default().fg(tailwind::GREEN.c500)),
+                    .border_type(BorderType::Double)
+                    .border_style(Style::default().fg(tailwind::GREEN.c600)),
             );
         frame.render_widget(button, area);
     }

@@ -357,10 +357,14 @@ impl App {
                         KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
                             self.focused_block = FocusedBlock::Content;
                         }
+                        KeyCode::Enter => {
+                            self.focused_block = FocusedBlock::Content;
+                            // do something with the selected item (filter)
+                        }
                         KeyCode::Esc | KeyCode::Char('q') => {
                             self.focused_block = FocusedBlock::Content
                         }
-                        KeyCode::Enter | KeyCode::Char(' ') => {
+                        KeyCode::Char(' ') => {
                             self.menu_state.toggle_selected();
                         }
                         KeyCode::Left => {
@@ -451,9 +455,10 @@ impl App {
 
     fn render_menu(&mut self, frame: &mut Frame, area: Rect) {
         let widget = Tree::new(&self.menu_items)
-            .expect("all item identifiers must unique")
+            .expect("all item identifiers must be unique")
             .block(
                 Block::default()
+                    .title_bottom(format!("{:?}", self.menu_state.selected()))
                     .borders(Borders::ALL)
                     .border_type(BorderType::Plain)
                     .border_style(Style::default().fg(match self.focused_block {

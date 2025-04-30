@@ -2,7 +2,7 @@ use color_eyre::Result;
 
 use ratatui::{
     DefaultTerminal, Frame,
-    crossterm::event::{self, Event, KeyCode, KeyEventKind},
+    crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers},
     layout::{Alignment, Constraint, Layout, Margin, Rect},
     style::{Modifier, Style, palette::tailwind},
     text::Text,
@@ -11,6 +11,8 @@ use ratatui::{
         Scrollbar, ScrollbarOrientation, ScrollbarState, Table, TableState, Tabs,
     },
 };
+
+use tui_tree_widget::{Tree, TreeItem, TreeState};
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -49,12 +51,21 @@ struct Task {
     status: TaskStaus,
 }
 
+enum FocusedBlock {
+    Content,
+    Menu,
+}
+
 struct App {
+    focused_block: FocusedBlock, // focused window
     table_state: TableState,
     scrollbar_state: ScrollbarState,
     progress: f32,
     items: Vec<Task>,
     selected_tab: SelectedTab,
+    menu_state: TreeState<&'static str>,
+    menu_items: Vec<TreeItem<'static, &'static str>>,
+    running: bool,
 }
 
 #[derive(Default, Clone, Copy)]
@@ -232,22 +243,92 @@ impl App {
             },
         ];
         Self {
+            running: true,
+            focused_block: FocusedBlock::Content,
             table_state: TableState::default(),
             scrollbar_state: ScrollbarState::default(),
             progress: 0.0,
             items: dummy_items,
             selected_tab: SelectedTab::default(),
+            menu_state: TreeState::default(),
+            menu_items: vec![
+                TreeItem::new(
+                    "a",
+                    Text::from("ALL DOWNLOADS").style(
+                        Style::default()
+                            .fg(tailwind::NEUTRAL.c400)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    vec![
+                        TreeItem::new_leaf("m", "󰎆 Music"),
+                        TreeItem::new_leaf("v", " Videos"),
+                        TreeItem::new_leaf("d", "󰈙 Documents"),
+                        TreeItem::new_leaf("c", " Compressed"),
+                        TreeItem::new_leaf("p", " Programs"),
+                        TreeItem::new_leaf("o", " Others"),
+                    ],
+                )
+                .expect("all item identifiers must unique"),
+                TreeItem::new(
+                    "u",
+                    Text::from("UNFINISHED").style(
+                        Style::default()
+                            .fg(tailwind::NEUTRAL.c400)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    vec![
+                        TreeItem::new_leaf("um", "󰎆 Music"),
+                        TreeItem::new_leaf("uv", " Videos"),
+                        TreeItem::new_leaf("ud", "󰈙 Documents"),
+                        TreeItem::new_leaf("uc", " Compressed"),
+                        TreeItem::new_leaf("up", " Programs"),
+                        TreeItem::new_leaf("uo", " Others"),
+                    ],
+                )
+                .expect("all item identifiers must unique"),
+                TreeItem::new(
+                    "f",
+                    Text::from("FINISHED").style(
+                        Style::default()
+                            .fg(tailwind::NEUTRAL.c400)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    vec![
+                        TreeItem::new_leaf("fm", "󰎆 Music"),
+                        TreeItem::new_leaf("fv", " Videos"),
+                        TreeItem::new_leaf("fd", "󰈙 Documents"),
+                        TreeItem::new_leaf("fc", " Compressed"),
+                        TreeItem::new_leaf("fp", " Programs"),
+                        TreeItem::new_leaf("fo", " Others"),
+                    ],
+                )
+                .expect("all item identifiers must unique"),
+            ],
         }
     }
 
     fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
-        loop {
-            terminal.draw(|frame| self.draw(frame))?;
+        // Open the "ALL DOWNLOADS" and "UNFINISHED" menu items by default
+        // Can't set this state in the constructor because fields are private in the TreeState
+        self.menu_state.open(vec!["a"]);
+        self.menu_state.open(vec!["u"]);
 
-            if let Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press {
-                    match key.code {
-                        KeyCode::Esc | KeyCode::Char('q') => return Ok(()),
+        while self.running {
+            terminal.draw(|frame| self.draw(frame))?;
+            self.handle_events()?;
+        }
+        Ok(())
+    }
+
+    fn handle_events(&mut self) -> Result<()> {
+        if let Event::Key(key) = event::read()? {
+            if key.kind == KeyEventKind::Press {
+                match self.focused_block {
+                    FocusedBlock::Content => match key.code {
+                        KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                            self.focused_block = FocusedBlock::Menu;
+                        }
+                        KeyCode::Esc | KeyCode::Char('q') => self.running = false,
                         KeyCode::Tab => {
                             self.selected_tab = self.selected_tab.next();
                         }
@@ -271,10 +352,42 @@ impl App {
                             }
                         }
                         _ => {}
-                    }
+                    },
+                    FocusedBlock::Menu => match key.code {
+                        KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                            self.focused_block = FocusedBlock::Content;
+                        }
+                        KeyCode::Esc | KeyCode::Char('q') => {
+                            self.focused_block = FocusedBlock::Content
+                        }
+                        KeyCode::Enter | KeyCode::Char(' ') => {
+                            self.menu_state.toggle_selected();
+                        }
+                        KeyCode::Left => {
+                            self.menu_state.key_left();
+                        }
+                        KeyCode::Right => {
+                            self.menu_state.key_right();
+                        }
+                        KeyCode::Down => {
+                            self.menu_state.key_down();
+                        }
+                        KeyCode::Up => {
+                            self.menu_state.key_up();
+                        }
+
+                        KeyCode::Home => {
+                            self.menu_state.select_first();
+                        }
+                        KeyCode::End => {
+                            self.menu_state.select_last();
+                        }
+                        _ => {}
+                    },
                 }
             }
         }
+        Ok(())
     }
 
     fn draw(&mut self, frame: &mut Frame) {
@@ -292,8 +405,8 @@ impl App {
         let inner_layout = Layout::default()
             .direction(ratatui::layout::Direction::Horizontal)
             .constraints(vec![
-                Constraint::Percentage(25), // menu
-                Constraint::Percentage(75), // table
+                Constraint::Length(35), // menu
+                Constraint::Min(60),    // table
             ])
             .split(outer_layout[0]);
 
@@ -308,7 +421,7 @@ impl App {
             .flex(ratatui::layout::Flex::SpaceBetween)
             .split(content_layout[0]);
 
-        self.render_div(frame, inner_layout[0]);
+        self.render_menu(frame, inner_layout[0]);
 
         self.render_tabs(frame, action_layout[0]);
         self.render_action_button(frame, action_layout[1]);
@@ -336,13 +449,27 @@ impl App {
         frame.render_widget(button, area);
     }
 
-    fn render_div(&self, frame: &mut Frame, area: Rect) {
-        let div = Block::default()
-            .borders(Borders::ALL)
-            .border_type(BorderType::Plain)
-            .border_style(Style::default().fg(tailwind::PURPLE.c950))
-            .style(Style::default().fg(tailwind::NEUTRAL.c500));
-        frame.render_widget(div, area);
+    fn render_menu(&mut self, frame: &mut Frame, area: Rect) {
+        let widget = Tree::new(&self.menu_items)
+            .expect("all item identifiers must unique")
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Plain)
+                    .border_style(Style::default().fg(match self.focused_block {
+                        FocusedBlock::Content => tailwind::PURPLE.c950,
+                        FocusedBlock::Menu => tailwind::PURPLE.c800,
+                    }))
+                    .padding(Padding::uniform(2)),
+            )
+            .highlight_style(
+                Style::new()
+                    .fg(tailwind::PURPLE.c500)
+                    .bg(tailwind::NEUTRAL.c900)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .highlight_symbol("");
+        frame.render_stateful_widget(widget, area, &mut self.menu_state);
     }
 
     fn render_tabs(&self, frame: &mut Frame, area: Rect) {
@@ -420,7 +547,10 @@ impl App {
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
                 .title(" TASTKS ")
-                .border_style(Style::default().fg(tailwind::PURPLE.c950))
+                .border_style(Style::default().fg(match self.focused_block {
+                    FocusedBlock::Menu => tailwind::PURPLE.c950,
+                    FocusedBlock::Content => tailwind::PURPLE.c800,
+                }))
                 .padding(Padding::new(0, 0, 1, 0)),
         )
         .header(header)

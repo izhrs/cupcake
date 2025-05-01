@@ -22,6 +22,7 @@ fn main() -> Result<()> {
     app_result
 }
 
+#[derive(Clone)]
 enum TaskStaus {
     Running,
     Paused,
@@ -42,6 +43,8 @@ impl std::fmt::Display for TaskStaus {
         write!(f, "{}", status)
     }
 }
+
+#[derive(Clone)]
 struct Task {
     name: String,
     speed: f32,
@@ -54,6 +57,17 @@ struct Task {
 enum FocusedBlock {
     Content,
     Menu,
+    // Modal
+}
+
+struct TaskState {
+    tasks: Vec<Task>,
+}
+
+impl TaskState {
+    fn new(tasks: Vec<Task>) -> Self {
+        Self { tasks }
+    }
 }
 
 struct App {
@@ -61,7 +75,8 @@ struct App {
     table_state: TableState,
     scrollbar_state: ScrollbarState,
     progress: f32,
-    items: Vec<Task>,
+    task_items: Vec<Task>, // this is just for storing original tasks
+    task_state: TaskState, // this is for performing filter operations
     selected_tab: SelectedTab,
     menu_state: TreeState<&'static str>,
     menu_items: Vec<TreeItem<'static, &'static str>>,
@@ -241,6 +256,14 @@ impl App {
                 eta: "N/A".to_string(),
                 status: TaskStaus::Failed,
             },
+            Task {
+                name: "Emily_Wills_4K.mp4".to_string(),
+                speed: 5.2,
+                size: 2439.0,
+                progress: 1.00,
+                eta: "0m".to_string(),
+                status: TaskStaus::Finished,
+            },
         ];
         Self {
             running: true,
@@ -248,7 +271,8 @@ impl App {
             table_state: TableState::default(),
             scrollbar_state: ScrollbarState::default(),
             progress: 0.0,
-            items: dummy_items,
+            task_items: dummy_items.clone(),
+            task_state: TaskState::new(dummy_items),
             selected_tab: SelectedTab::default(),
             menu_state: TreeState::default(),
             menu_items: vec![
@@ -358,8 +382,8 @@ impl App {
                             self.focused_block = FocusedBlock::Content;
                         }
                         KeyCode::Enter => {
-                            self.focused_block = FocusedBlock::Content;
-                            // do something with the selected item (filter)
+                            // self.focused_block = FocusedBlock::Content;
+                            self.filter_tasks();
                         }
                         KeyCode::Esc | KeyCode::Char('q') => {
                             self.focused_block = FocusedBlock::Content
@@ -403,35 +427,48 @@ impl App {
 
         frame.render_widget(&screen, frame.area());
 
-        let outer_layout = Layout::vertical(vec![Constraint::Min(5), Constraint::Length(3)])
-            .split(screen.inner(frame.area()));
+        // Entire screen layout
+        let main_layout = Layout::vertical(vec![
+            Constraint::Min(40),   // everything
+            Constraint::Length(3), // progress bar (bottom)
+        ])
+        .split(screen.inner(frame.area()));
 
-        let inner_layout = Layout::default()
+        let body_layout = Layout::default()
             .direction(ratatui::layout::Direction::Horizontal)
             .constraints(vec![
-                Constraint::Length(35), // menu
-                Constraint::Min(60),    // table
+                Constraint::Length(35), // sidebar (menu and logo)
+                Constraint::Min(60),    // tab - button and content
             ])
-            .split(outer_layout[0]);
+            .split(main_layout[0]);
+
+        let sidebar_layout = Layout::default()
+            .direction(ratatui::layout::Direction::Vertical)
+            .constraints(vec![
+                Constraint::Length(5), // logo
+                Constraint::Min(20),   // menu
+            ])
+            .split(body_layout[0]);
 
         let content_layout = Layout::default()
             .direction(ratatui::layout::Direction::Vertical)
-            .constraints(vec![Constraint::Length(3), Constraint::Min(5)])
-            .split(inner_layout[1]);
+            .constraints(vec![
+                Constraint::Length(3), // tabs and button
+                Constraint::Min(40),   // main content (all tasks are rendered here)
+            ])
+            .split(body_layout[1]);
 
         let action_layout = Layout::default()
             .direction(ratatui::layout::Direction::Horizontal)
-            .constraints(vec![Constraint::Min(38), Constraint::Max(12)])
+            .constraints(vec![
+                Constraint::Min(38), // tabs
+                Constraint::Max(12), // add task button (action button)
+            ])
             .flex(ratatui::layout::Flex::SpaceBetween)
             .split(content_layout[0]);
 
-        let menu_layout = Layout::default()
-            .direction(ratatui::layout::Direction::Vertical)
-            .constraints(vec![Constraint::Length(5), Constraint::Min(20)])
-            .split(inner_layout[0]);
-
-        self.render_logo(frame, menu_layout[0]);
-        self.render_menu(frame, menu_layout[1]);
+        self.render_logo(frame, sidebar_layout[0]);
+        self.render_menu(frame, sidebar_layout[1]);
 
         self.render_tabs(frame, action_layout[0]);
         self.render_action_button(frame, action_layout[1]);
@@ -439,7 +476,7 @@ impl App {
         self.render_table(frame, content_layout[1]);
         self.render_scrollbar(frame, content_layout[1]);
 
-        self.render_progress_bar(frame, outer_layout[1]);
+        self.render_progress_bar(frame, main_layout[1]);
     }
 
     fn render_action_button(&self, frame: &mut Frame, area: Rect) {
@@ -547,7 +584,7 @@ impl App {
             .collect::<Row>()
             .style(header_style)
             .height(1);
-        let rows = self.items.iter().enumerate().map(|(i, data)| {
+        let rows = self.task_state.tasks.iter().enumerate().map(|(i, data)| {
             let color = match i % 2 {
                 0 => tailwind::NEUTRAL.c900,
                 _ => tailwind::NEUTRAL.c950,
@@ -582,7 +619,11 @@ impl App {
             Block::default()
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
-                .title(" TASTKS ")
+                .title(Line::from(vec![
+                    Span::from("[ "),
+                    Span::styled("TASKS", Style::default().fg(tailwind::PURPLE.c500)),
+                    Span::from(" ]"),
+                ]))
                 .border_style(Style::default().fg(match self.focused_block {
                     FocusedBlock::Menu => tailwind::PURPLE.c950,
                     FocusedBlock::Content => tailwind::PURPLE.c800,
@@ -618,7 +659,11 @@ impl App {
                 Block::default()
                     .borders(Borders::ALL)
                     .border_type(BorderType::Plain)
-                    .title(" PROGRESS ")
+                    .title(Line::from(vec![
+                        Span::from("[ "),
+                        Span::styled("PROGRESS", Style::default().fg(tailwind::PURPLE.c500)),
+                        Span::from(" ]"),
+                    ]))
                     .border_style(Style::default().fg(tailwind::PURPLE.c950)),
             )
             .gauge_style(
@@ -638,7 +683,7 @@ impl App {
     fn next_row(&mut self) {
         let i = match self.table_state.selected() {
             Some(i) => {
-                if i >= self.items.len() - 1 {
+                if i >= self.task_state.tasks.len() - 1 {
                     0
                 } else {
                     i + 1
@@ -654,7 +699,7 @@ impl App {
         let i = match self.table_state.selected() {
             Some(i) => {
                 if i == 0 {
-                    self.items.len() - 1
+                    self.task_state.tasks.len() - 1
                 } else {
                     i - 1
                 }
@@ -663,6 +708,35 @@ impl App {
         };
         self.table_state.select(Some(i));
         self.scrollbar_state = self.scrollbar_state.position(i * 4);
+    }
+
+    fn filter_tasks(&mut self) {
+        match self.menu_state.selected().len() {
+            1 => match self.menu_state.selected()[0] {
+                "u" => {
+                    self.task_state.tasks = self
+                        .task_items
+                        .iter()
+                        .filter(|&t| !matches!(t.status, TaskStaus::Finished))
+                        .cloned()
+                        .collect();
+                }
+                "f" => {
+                    self.task_state.tasks = self
+                        .task_items
+                        .iter()
+                        .filter(|&t| matches!(t.status, TaskStaus::Finished))
+                        .cloned()
+                        .collect();
+                }
+                _ => self.task_state.tasks = self.task_items.clone(),
+            },
+
+            // 2 => match self.menu_state.selected()[1] {
+
+            // }
+            _ => {}
+        }
     }
 }
 

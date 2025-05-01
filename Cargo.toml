@@ -1,7 +1,19 @@
 [package]
 name = "cupcake"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
+description = "A modern TUI download manager"
+authors = ["Mohamed Izhar <mohamed@izhar.xyz>"]
+repository = "https://github.com/izhrs/cupcake"
+readme = "README.md"
+license = "GPL-2.0"
+keywords = ["youtube", "download", "tui", "yt-dlp", "video"]
+categories = [
+    "command-line-utilities",
+    "multimedia::video",
+    "network-programming",
+    "filesystem",
+]
 
 [dependencies]
 color-eyre = "0.6.3"

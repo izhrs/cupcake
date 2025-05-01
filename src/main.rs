@@ -4,8 +4,8 @@ use ratatui::{
     DefaultTerminal, Frame,
     crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers},
     layout::{Alignment, Constraint, Layout, Margin, Rect},
-    style::{Modifier, Style, palette::tailwind},
-    text::Text,
+    style::{Modifier, Style, Stylize, palette::tailwind},
+    text::{Line, Span, Text},
     widgets::{
         Block, BorderType, Borders, Cell, Gauge, HighlightSpacing, Padding, Paragraph, Row,
         Scrollbar, ScrollbarOrientation, ScrollbarState, Table, TableState, Tabs,
@@ -425,7 +425,13 @@ impl App {
             .flex(ratatui::layout::Flex::SpaceBetween)
             .split(content_layout[0]);
 
-        self.render_menu(frame, inner_layout[0]);
+        let menu_layout = Layout::default()
+            .direction(ratatui::layout::Direction::Vertical)
+            .constraints(vec![Constraint::Length(5), Constraint::Min(20)])
+            .split(inner_layout[0]);
+
+        self.render_logo(frame, menu_layout[0]);
+        self.render_menu(frame, menu_layout[1]);
 
         self.render_tabs(frame, action_layout[0]);
         self.render_action_button(frame, action_layout[1]);
@@ -453,6 +459,31 @@ impl App {
         frame.render_widget(button, area);
     }
 
+    fn render_logo(&self, frame: &mut Frame, area: Rect) {
+        let logo = Paragraph::new(
+            Line::from(vec![
+                Span::styled("C ", Style::default().fg(tailwind::PURPLE.c500)),
+                Span::styled("U ", Style::default().fg(tailwind::GREEN.c500)),
+                Span::styled("P ", Style::default().fg(tailwind::BLUE.c500)),
+                Span::styled("C ", Style::default().fg(tailwind::ORANGE.c500)),
+                Span::styled("A ", Style::default().fg(tailwind::VIOLET.c500)),
+                Span::styled("K ", Style::default().fg(tailwind::CYAN.c500)),
+                Span::styled("E", Style::default().fg(tailwind::ROSE.c500)),
+            ])
+            .alignment(Alignment::Center),
+        )
+        .add_modifier(Modifier::BOLD)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Double)
+                .border_style(Style::default().fg(tailwind::PURPLE.c950))
+                .padding(Padding::uniform(1)),
+        );
+
+        frame.render_widget(logo, area);
+    }
+
     fn render_menu(&mut self, frame: &mut Frame, area: Rect) {
         let widget = Tree::new(&self.menu_items)
             .expect("all item identifiers must be unique")
@@ -465,7 +496,7 @@ impl App {
                         FocusedBlock::Content => tailwind::PURPLE.c950,
                         FocusedBlock::Menu => tailwind::PURPLE.c800,
                     }))
-                    .padding(Padding::uniform(2)),
+                    .padding(Padding::symmetric(2, 1)),
             )
             .highlight_style(
                 Style::new()

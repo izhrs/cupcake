@@ -277,56 +277,69 @@ impl App {
             menu_state: TreeState::default(),
             menu_items: vec![
                 TreeItem::new(
-                    "a",
+                    "all",
                     Text::from("ALL DOWNLOADS").style(
                         Style::default()
                             .fg(tailwind::NEUTRAL.c400)
                             .add_modifier(Modifier::BOLD),
                     ),
                     vec![
-                        TreeItem::new_leaf("m", "󰎆 Music"),
-                        TreeItem::new_leaf("v", " Videos"),
-                        TreeItem::new_leaf("d", "󰈙 Documents"),
-                        TreeItem::new_leaf("c", " Compressed"),
-                        TreeItem::new_leaf("p", " Programs"),
-                        TreeItem::new_leaf("o", " Others"),
+                        TreeItem::new_leaf("all-music", "󰎆 Music"),
+                        TreeItem::new_leaf("all-vids", " Videos"),
+                        TreeItem::new_leaf("all-docs", "󰈙 Documents"),
+                        TreeItem::new_leaf("all-compressed", " Compressed"),
+                        TreeItem::new_leaf("all-programs", " Programs"),
+                        TreeItem::new_leaf("all-others", " Others"),
                     ],
                 )
-                .expect("all item identifiers must unique"),
+                .expect("all item identifiers must be unique"),
                 TreeItem::new(
-                    "u",
+                    "unfinished",
                     Text::from("UNFINISHED").style(
                         Style::default()
                             .fg(tailwind::NEUTRAL.c400)
                             .add_modifier(Modifier::BOLD),
                     ),
                     vec![
-                        TreeItem::new_leaf("um", "󰎆 Music"),
-                        TreeItem::new_leaf("uv", " Videos"),
-                        TreeItem::new_leaf("ud", "󰈙 Documents"),
-                        TreeItem::new_leaf("uc", " Compressed"),
-                        TreeItem::new_leaf("up", " Programs"),
-                        TreeItem::new_leaf("uo", " Others"),
+                        TreeItem::new_leaf("unfinished-music", "󰎆 Music"),
+                        TreeItem::new_leaf("unfinished-vids", " Videos"),
+                        TreeItem::new_leaf("unfinished-docs", "󰈙 Documents"),
+                        TreeItem::new_leaf("unfinished-compressed", " Compressed"),
+                        TreeItem::new_leaf("unfinished-programs", " Programs"),
+                        TreeItem::new_leaf("unfinished-others", " Others"),
                     ],
                 )
-                .expect("all item identifiers must unique"),
+                .expect("all item identifiers must be unique"),
                 TreeItem::new(
-                    "f",
+                    "finished",
                     Text::from("FINISHED").style(
                         Style::default()
                             .fg(tailwind::NEUTRAL.c400)
                             .add_modifier(Modifier::BOLD),
                     ),
                     vec![
-                        TreeItem::new_leaf("fm", "󰎆 Music"),
-                        TreeItem::new_leaf("fv", " Videos"),
-                        TreeItem::new_leaf("fd", "󰈙 Documents"),
-                        TreeItem::new_leaf("fc", " Compressed"),
-                        TreeItem::new_leaf("fp", " Programs"),
-                        TreeItem::new_leaf("fo", " Others"),
+                        TreeItem::new_leaf("finished-music", "󰎆 Music"),
+                        TreeItem::new_leaf("finished-vids", " Videos"),
+                        TreeItem::new_leaf("finished-docs", "󰈙 Documents"),
+                        TreeItem::new_leaf("finished-compressed", " Compressed"),
+                        TreeItem::new_leaf("finished-programs", " Programs"),
+                        TreeItem::new_leaf("finished-others", " Others"),
                     ],
                 )
-                .expect("all item identifiers must unique"),
+                .expect("all item identifiers must be unique"),
+                TreeItem::new(
+                    "failed",
+                    Text::from("FAILED").style(
+                        Style::default()
+                            .fg(tailwind::NEUTRAL.c400)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    vec![
+                        TreeItem::new_leaf("failed-rec", "Recoverable"),
+                        TreeItem::new_leaf("failed-unr", "Unrecoverable"),
+                    ],
+                )
+                .expect("all item identifiers must be unique"),
             ],
         }
     }
@@ -334,8 +347,7 @@ impl App {
     fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
         // Open the "ALL DOWNLOADS" and "UNFINISHED" menu items by default
         // Can't set this state in the constructor because fields are private in the TreeState
-        self.menu_state.open(vec!["a"]);
-        self.menu_state.open(vec!["u"]);
+        self.menu_state.open(vec!["all"]);
 
         while self.running {
             terminal.draw(|frame| self.draw(frame))?;
@@ -429,7 +441,7 @@ impl App {
 
         // Entire screen layout
         let main_layout = Layout::vertical(vec![
-            Constraint::Min(40),   // everything
+            Constraint::Min(10),   // everything
             Constraint::Length(3), // progress bar (bottom)
         ])
         .split(screen.inner(frame.area()));
@@ -437,8 +449,8 @@ impl App {
         let body_layout = Layout::default()
             .direction(ratatui::layout::Direction::Horizontal)
             .constraints(vec![
-                Constraint::Length(35), // sidebar (menu and logo)
-                Constraint::Min(60),    // tab - button and content
+                Constraint::Length(25), // sidebar (menu and logo)
+                Constraint::Min(10),    // tab - button and content
             ])
             .split(main_layout[0]);
 
@@ -446,7 +458,7 @@ impl App {
             .direction(ratatui::layout::Direction::Vertical)
             .constraints(vec![
                 Constraint::Length(5), // logo
-                Constraint::Min(20),   // menu
+                Constraint::Min(10),   // menu
             ])
             .split(body_layout[0]);
 
@@ -454,14 +466,14 @@ impl App {
             .direction(ratatui::layout::Direction::Vertical)
             .constraints(vec![
                 Constraint::Length(3), // tabs and button
-                Constraint::Min(40),   // main content (all tasks are rendered here)
+                Constraint::Min(10),   // main content (all tasks are rendered here)
             ])
             .split(body_layout[1]);
 
         let action_layout = Layout::default()
             .direction(ratatui::layout::Direction::Horizontal)
             .constraints(vec![
-                Constraint::Min(38), // tabs
+                Constraint::Min(20), // tabs
                 Constraint::Max(12), // add task button (action button)
             ])
             .flex(ratatui::layout::Flex::SpaceBetween)
@@ -713,15 +725,15 @@ impl App {
     fn filter_tasks(&mut self) {
         match self.menu_state.selected().len() {
             1 => match self.menu_state.selected()[0] {
-                "u" => {
+                "unfinished" => {
                     self.task_state.tasks = self
                         .task_items
                         .iter()
-                        .filter(|&t| !matches!(t.status, TaskStaus::Finished))
+                        .filter(|&t| !matches!(t.status, TaskStaus::Finished | TaskStaus::Failed))
                         .cloned()
                         .collect();
                 }
-                "f" => {
+                "finished" => {
                     self.task_state.tasks = self
                         .task_items
                         .iter()
@@ -729,12 +741,132 @@ impl App {
                         .cloned()
                         .collect();
                 }
+                "failed" => {
+                    self.task_state.tasks = self
+                        .task_items
+                        .iter()
+                        .filter(|&t| matches!(t.status, TaskStaus::Failed))
+                        .cloned()
+                        .collect();
+                }
                 _ => self.task_state.tasks = self.task_items.clone(),
             },
 
-            // 2 => match self.menu_state.selected()[1] {
-
-            // }
+            2 => match self.menu_state.selected()[1] {
+                "all-music" | "finished-music" | "unfinished-music" => {
+                    self.task_state.tasks = self
+                        .task_items
+                        .iter()
+                        .filter(|&t| {
+                            (match self.menu_state.selected()[1] {
+                                "finished-music" => matches!(t.status, TaskStaus::Finished),
+                                "unfinished-music" => {
+                                    !matches!(t.status, TaskStaus::Finished | TaskStaus::Failed)
+                                }
+                                _ => true,
+                            }) && ([
+                                ".mp3", ".wav", ".aac", ".ogg", ".m4a", ".flac", ".wma", ".aiff",
+                                ".opus", ".dsd",
+                            ]
+                            .iter()
+                            .any(|&ext| t.name.ends_with(ext)))
+                        })
+                        .cloned()
+                        .collect();
+                }
+                "all-vids" | "finished-vids" | "unfinished-vids" => {
+                    self.task_state.tasks = self
+                        .task_items
+                        .iter()
+                        .filter(|&t| {
+                            (match self.menu_state.selected()[1] {
+                                "finished-vids" => matches!(t.status, TaskStaus::Finished),
+                                "unfinished-vids" => {
+                                    !matches!(t.status, TaskStaus::Finished | TaskStaus::Failed)
+                                }
+                                _ => true,
+                            }) && ([
+                                ".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".mpeg",
+                                ".mpg", ".3gp",
+                            ]
+                            .iter()
+                            .any(|&ext| t.name.ends_with(ext)))
+                        })
+                        .cloned()
+                        .collect();
+                }
+                "all-docs" | "finished-docs" | "unfinished-docs" => {
+                    self.task_state.tasks = self
+                        .task_items
+                        .iter()
+                        .filter(|&t| {
+                            (match self.menu_state.selected()[1] {
+                                "finished-docs" => matches!(t.status, TaskStaus::Finished),
+                                "unfinished-docs" => {
+                                    !matches!(t.status, TaskStaus::Finished | TaskStaus::Failed)
+                                }
+                                _ => true,
+                            }) && ([
+                                ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt",
+                                ".rtf", ".odt",
+                            ]
+                            .iter()
+                            .any(|&ext| t.name.ends_with(ext)))
+                        })
+                        .cloned()
+                        .collect();
+                }
+                "all-compressed" | "finished-compressed" | "unfinished-compressed" => {
+                    self.task_state.tasks = self
+                        .task_items
+                        .iter()
+                        .filter(|&t| {
+                            (match self.menu_state.selected()[1] {
+                                "finished-compressed" => matches!(t.status, TaskStaus::Finished),
+                                "unfinished-compressed" => {
+                                    !matches!(t.status, TaskStaus::Finished | TaskStaus::Failed)
+                                }
+                                _ => true,
+                            }) && ([
+                                ".zip", ".rar", ".tar", ".gz", ".7z", ".bz2", ".xz", ".iso",
+                                ".tgz", ".z",
+                            ]
+                            .iter()
+                            .any(|&ext| t.name.ends_with(ext)))
+                        })
+                        .cloned()
+                        .collect();
+                }
+                "all-programs" | "finished-programs" | "unfinished-programs" => {
+                    self.task_state.tasks = self
+                        .task_items
+                        .iter()
+                        .filter(|&t| {
+                            (match self.menu_state.selected()[1] {
+                                "finished-programs" => matches!(t.status, TaskStaus::Finished),
+                                "unfinished-programs" => {
+                                    !matches!(t.status, TaskStaus::Finished | TaskStaus::Failed)
+                                }
+                                _ => true,
+                            }) && ([
+                                ".exe", ".dll", ".msi", ".app", ".dmg", ".deb", ".rpm", ".sh",
+                                ".bin", ".jar", ".apk", ".xapk", "",
+                            ]
+                            .iter()
+                            .any(|&ext| t.name.ends_with(ext)))
+                        })
+                        .cloned()
+                        .collect();
+                }
+                _ => {
+                    self.task_state.tasks = self
+                        .task_items
+                        .iter()
+                        .filter(|&t| matches!(t.status, TaskStaus::Failed))
+                        .cloned()
+                        .collect();
+                }
+            },
             _ => {}
         }
     }

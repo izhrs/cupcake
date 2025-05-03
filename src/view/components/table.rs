@@ -1,0 +1,86 @@
+use ratatui::{
+    Frame,
+    layout::{Constraint, Rect},
+    style::{Modifier, Style, palette::tailwind},
+    text::{Line, Span, Text},
+    widgets::{Block, BorderType, Borders, Cell, HighlightSpacing, Padding, Row, Table},
+};
+
+use crate::model::state::{AppState, FocusedBlock};
+
+pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
+    let header_style = Style::default()
+        .fg(tailwind::PURPLE.c100)
+        .bg(tailwind::PURPLE.c950);
+    let selected_row_style = Style::default()
+        .add_modifier(Modifier::REVERSED)
+        .fg(tailwind::PURPLE.c800)
+        .bg(tailwind::PURPLE.c100);
+    let selected_col_style = Style::default().fg(tailwind::PURPLE.c600);
+    let selected_cell_style = Style::default()
+        .add_modifier(Modifier::REVERSED)
+        .fg(tailwind::PURPLE.c800);
+
+    let header = ["Name", "Speed", "Size", "Progress", "ETA", "Status"]
+        .into_iter()
+        .map(|c| Cell::from(Text::from(c.to_ascii_uppercase().to_string())))
+        .collect::<Row>()
+        .style(header_style)
+        .height(1);
+
+    let rows = model.task_state.tasks.iter().enumerate().map(|(i, data)| {
+        let color = match i % 2 {
+            0 => tailwind::NEUTRAL.c900,
+            _ => tailwind::NEUTRAL.c950,
+        };
+
+        let item = [
+            Text::from(data.name.to_string()),
+            Text::from(format!("{:.2} MB/s", data.speed)),
+            Text::from(format!("{:.0} MB", data.size)),
+            Text::from(format!("{:.0} %", data.progress * 100.0)),
+            Text::from(data.eta.clone()),
+            Text::from(data.status.to_string()),
+        ];
+        item.into_iter()
+            .map(|content| Cell::from(Text::from(format!("\n{}\n", content))))
+            .collect::<Row>()
+            .style(Style::new().fg(tailwind::NEUTRAL.c100).bg(color))
+            .height(3)
+    });
+
+    let t = Table::new(
+        rows,
+        [
+            Constraint::Min(30),    // name
+            Constraint::Length(15), // speed
+            Constraint::Length(15), // size
+            Constraint::Length(10), // progress
+            Constraint::Length(10), // eta
+            Constraint::Length(15), // status
+        ],
+    )
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Plain)
+            .title(Line::from(vec![
+                Span::from("[ "),
+                Span::styled("TASKS", Style::default().fg(tailwind::PURPLE.c500)),
+                Span::from(" ]"),
+            ]))
+            .border_style(Style::default().fg(match model.focused_block {
+                FocusedBlock::Content => tailwind::PURPLE.c800,
+                _ => tailwind::PURPLE.c950,
+            }))
+            .padding(Padding::new(0, 0, 1, 0)),
+    )
+    .header(header)
+    .row_highlight_style(selected_row_style)
+    .column_highlight_style(selected_col_style)
+    .cell_highlight_style(selected_cell_style)
+    .highlight_symbol(Text::from("  "))
+    .highlight_spacing(HighlightSpacing::Always);
+
+    frame.render_stateful_widget(t, area, &mut model.table_state);
+}

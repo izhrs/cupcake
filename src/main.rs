@@ -2,17 +2,20 @@ mod model;
 mod update;
 mod view;
 
-use crate::model::{
-    state::AppState,
-    task::{Task, TaskStatus},
-};
-use crate::update::{message::Msg, update};
-use crate::view::draw;
+use std::path::PathBuf;
 
 use color_eyre::Result;
 use ratatui::DefaultTerminal;
-use std::path::PathBuf;
 use url::Url;
+
+use crate::{
+    model::{
+        state::AppState,
+        task::{Task, TaskStatus},
+    },
+    update::{message::Msg, update},
+    view::draw,
+};
 
 fn main() -> Result<()> {
     color_eyre::install()?;

@@ -21,5 +21,6 @@ pub fn render(_modal: &mut AppState, frame: &mut Frame, area: Rect) {
                 .border_type(BorderType::Double)
                 .border_style(Style::default().fg(tailwind::GREEN.c600)),
         );
+
     frame.render_widget(button, area);
 }

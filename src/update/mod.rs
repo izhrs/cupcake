@@ -1,7 +1,9 @@
 pub(crate) mod message;
 
-use crate::model::state::{AppState, FocusedBlock};
-use crate::update::message::{ContentMsg, MenuMsg, ModalMsg, Msg};
+use crate::{
+    model::state::{AppState, FocusedBlock},
+    update::message::{ContentMsg, MenuMsg, ModalMsg, Msg},
+};
 
 pub fn update(model: &mut AppState, msg: Msg) {
     match msg {

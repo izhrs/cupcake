@@ -32,6 +32,6 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
                 .bg(tailwind::PURPLE.c950),
         )
         .percent(model.progress as u16);
-    
+
     frame.render_widget(progress_bar, area);
 }

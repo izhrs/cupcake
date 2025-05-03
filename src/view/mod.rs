@@ -1,15 +1,18 @@
 pub mod components;
 mod layout;
 
-use crate::model::state::AppState;
-use crate::view::layout::LayoutAreas;
-
-use crate::view::components::{action_button, logo, menu, progress_bar, scrollbar, table, tabs};
-
 use ratatui::{
     Frame,
     style::{Style, palette::tailwind},
     widgets::{Block, Borders},
+};
+
+use crate::{
+    model::state::AppState,
+    view::{
+        components::{action_button, logo, menu, progress_bar, scrollbar, table, tabs},
+        layout::LayoutAreas,
+    },
 };
 
 pub fn draw(model: &mut AppState, frame: &mut Frame) {

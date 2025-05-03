@@ -30,5 +30,6 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
                 .add_modifier(Modifier::BOLD),
         )
         .highlight_symbol("");
+
     frame.render_stateful_widget(widget, area, &mut model.menu_state);
 }

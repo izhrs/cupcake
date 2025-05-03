@@ -1,5 +1,6 @@
-use crate::model::state::FocusedBlock;
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
+
+use crate::model::state::FocusedBlock;
 
 pub enum Msg {
     Quit,

@@ -44,8 +44,8 @@ impl std::fmt::Display for TaskStatus {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TaskState {
-    #[serde(skip)]
     db: VecDeque<Task>,
+    #[serde(skip)]
     pub(crate) tasks: VecDeque<Task>,
     #[serde(skip)]
     pub(crate) table_state: TableState,
@@ -280,22 +280,22 @@ impl TaskStore {
         let store: TaskStore = serde_json::from_reader(file)?;
 
         self.single = TaskState {
-            db: store.single.tasks.clone(),
-            tasks: store.single.tasks,
+            db: store.single.db.clone(),
+            tasks: store.single.db,
             table_state: TableState::default(),
             scroll_state: ScrollbarState::default(),
         };
 
         self.batch = TaskState {
-            db: store.batch.tasks.clone(),
-            tasks: store.batch.tasks,
+            db: store.batch.db.clone(),
+            tasks: store.batch.db,
             table_state: TableState::default(),
             scroll_state: ScrollbarState::default(),
         };
 
         self.playlist = TaskState {
-            db: store.playlist.tasks.clone(),
-            tasks: store.playlist.tasks,
+            db: store.playlist.db.clone(),
+            tasks: store.playlist.db,
             table_state: TableState::default(),
             scroll_state: ScrollbarState::default(),
         };

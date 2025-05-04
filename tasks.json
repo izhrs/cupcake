@@ -1,6 +1,6 @@
 {
   "single": {
-    "tasks": [
+    "db": [
       {
         "name": "visual_studio_2022.exe",
         "source": "https://download.visualstudio.microsoft.com/vs2022.exe",
@@ -254,7 +254,7 @@
     ]
   },
   "batch": {
-    "tasks": [
+    "db": [
       {
         "name": "wildlife_photography_collection.zip",
         "source": "https://example.com/media/wildlife_photography_collection.zip",
@@ -428,7 +428,7 @@
     ]
   },
   "playlist": {
-    "tasks": [
+    "db": [
       {
         "name": "advanced_machine_learning_course.pdf",
         "source": "https://example.com/education/advanced_machine_learning_course.pdf",

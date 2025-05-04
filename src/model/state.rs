@@ -98,6 +98,7 @@ impl AppState {
     }
 }
 
+#[derive(Clone, Copy)]
 pub(crate) enum FocusedBlock {
     Content,
     Menu,
@@ -112,6 +113,18 @@ pub(crate) enum SelectedTab {
     Playlist,
     Settings,
     About,
+}
+
+impl std::fmt::Display for SelectedTab {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SelectedTab::Single => write!(f, "Single"),
+            SelectedTab::Batch => write!(f, "Batch"),
+            SelectedTab::Playlist => write!(f, "Playlist"),
+            SelectedTab::Settings => write!(f, "Settings"),
+            SelectedTab::About => write!(f, "About"),
+        }
+    }
 }
 
 impl SelectedTab {

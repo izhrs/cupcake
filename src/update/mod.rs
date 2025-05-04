@@ -1,7 +1,7 @@
 pub(crate) mod message;
 
 use crate::{
-    model::state::{AppState, FocusedBlock},
+    model::state::{AppState, FocusedBlock, SelectedTab},
     update::message::{ContentMsg, MenuMsg, ModalMsg, Msg},
 };
 
@@ -16,8 +16,18 @@ pub fn update(model: &mut AppState, msg: Msg) {
             ContentMsg::FocusMenu => model.focused_block = FocusedBlock::Menu,
             ContentMsg::SwitchNextTab => model.selected_tab = model.selected_tab.next(),
             ContentMsg::SwitchPreviousTab => model.selected_tab = model.selected_tab.previous(),
-            ContentMsg::SelectNextRow => model.task_store.single.next_row(),
-            ContentMsg::SelectPreviousRow => model.task_store.single.previous_row(),
+            ContentMsg::SelectNextRow => match model.selected_tab {
+                SelectedTab::Single => model.task_store.single.next_row(),
+                SelectedTab::Batch => model.task_store.batch.next_row(),
+                SelectedTab::Playlist => model.task_store.playlist.next_row(),
+                _ => {}
+            },
+            ContentMsg::SelectPreviousRow => match model.selected_tab {
+                SelectedTab::Single => model.task_store.single.previous_row(),
+                SelectedTab::Batch => model.task_store.batch.previous_row(),
+                SelectedTab::Playlist => model.task_store.playlist.previous_row(),
+                _ => {}
+            },
             ContentMsg::ProgressUp => {
                 if model.progress < 100.0 {
                     model.progress += 1.0;
@@ -53,12 +63,21 @@ pub fn update(model: &mut AppState, msg: Msg) {
             MenuMsg::SelectLastMenuItem => {
                 model.menu_state.select_last();
             }
-            MenuMsg::ApplyMenuFilter => {
-                model
+            MenuMsg::ApplyMenuFilter => match model.selected_tab {
+                SelectedTab::Single => model
                     .task_store
                     .single
-                    .apply_menu_filter(model.menu_state.selected().to_owned());
-            }
+                    .apply_menu_filter(model.menu_state.selected().to_owned()),
+                SelectedTab::Batch => model
+                    .task_store
+                    .batch
+                    .apply_menu_filter(model.menu_state.selected().to_owned()),
+                SelectedTab::Playlist => model
+                    .task_store
+                    .playlist
+                    .apply_menu_filter(model.menu_state.selected().to_owned()),
+                _ => {}
+            },
         },
 
         Msg::Modal(msg) => match msg {

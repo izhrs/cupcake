@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
@@ -6,7 +8,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Cell, HighlightSpacing, Padding, Row, Table},
 };
 
-use crate::model::state::{AppState, FocusedBlock};
+use crate::model::state::{AppState, FocusedBlock, SelectedTab};
 
 pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
     let header_style = Style::default()
@@ -28,32 +30,33 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
         .style(header_style)
         .height(1);
 
-    let rows = model
-        .task_store
-        .single
-        .tasks
-        .iter()
-        .enumerate()
-        .map(|(i, data)| {
-            let color = match i % 2 {
-                0 => model.theme.primary.c900,
-                _ => model.theme.primary.c950,
-            };
+    let tasks = match model.selected_tab {
+        SelectedTab::Single => model.task_store.single.tasks.clone(),
+        SelectedTab::Batch => model.task_store.batch.tasks.clone(),
+        SelectedTab::Playlist => model.task_store.playlist.tasks.clone(),
+        _ => VecDeque::new(),
+    };
 
-            let item = [
-                Text::from(data.name.to_string()),
-                Text::from(format!("{:.2} MB/s", data.speed)),
-                Text::from(format!("{:.0} MB", data.size)),
-                Text::from(format!("{:.0} %", data.progress)),
-                Text::from(data.eta.clone()),
-                Text::from(data.status.to_string()),
-            ];
-            item.into_iter()
-                .map(|content| Cell::from(Text::from(format!("\n{}\n", content))))
-                .collect::<Row>()
-                .style(Style::new().fg(model.theme.primary.c100).bg(color))
-                .height(3)
-        });
+    let rows = tasks.iter().enumerate().map(|(i, data)| {
+        let color = match i % 2 {
+            0 => model.theme.primary.c900,
+            _ => model.theme.primary.c950,
+        };
+
+        let item = [
+            Text::from(data.name.to_string()),
+            Text::from(format!("{:.2} MB/s", data.speed)),
+            Text::from(format!("{:.0} MB", data.size)),
+            Text::from(format!("{:.0} %", data.progress)),
+            Text::from(data.eta.clone()),
+            Text::from(data.status.to_string()),
+        ];
+        item.into_iter()
+            .map(|content| Cell::from(Text::from(format!("\n{}\n", content))))
+            .collect::<Row>()
+            .style(Style::new().fg(model.theme.primary.c100).bg(color))
+            .height(3)
+    });
 
     let t = Table::new(
         rows,
@@ -72,7 +75,10 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
             .border_type(BorderType::Plain)
             .title(Line::from(vec![
                 Span::from("[ "),
-                Span::styled("TASKS", Style::default().fg(model.theme.secondary.c500)),
+                Span::styled(
+                    format!("{} TASKS", model.selected_tab.to_string().to_uppercase()),
+                    Style::default().fg(model.theme.secondary.c500),
+                ),
                 Span::from(" ]"),
             ]))
             .border_style(Style::default().fg(match model.focused_block {
@@ -88,5 +94,14 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
     .highlight_symbol(Text::from("  "))
     .highlight_spacing(HighlightSpacing::Always);
 
-    frame.render_stateful_widget(t, area, &mut model.task_store.single.table_state);
+    frame.render_stateful_widget(
+        t,
+        area,
+        match model.selected_tab {
+            SelectedTab::Single => &mut model.task_store.single.table_state,
+            SelectedTab::Batch => &mut model.task_store.batch.table_state,
+            SelectedTab::Playlist => &mut model.task_store.playlist.table_state,
+            _ => &mut model.task_store.single.table_state,
+        },
+    );
 }

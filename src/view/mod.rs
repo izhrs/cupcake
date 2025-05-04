@@ -29,13 +29,32 @@ pub fn draw(model: &mut AppState, frame: &mut Frame) {
     logo::render(model, frame, layout.logo);
     menu::render(model, frame, layout.menu);
     tabs::render(model, frame, layout.tabs);
+
     match model.selected_tab {
         SelectedTab::Single => {
             table::render(model, frame, layout.content);
-            scrollbar::render(model, frame, layout.content);
+
+            if (model.task_store.single.tasks.len() * 3) > layout.content.height as usize {
+                scrollbar::render(model, frame, layout.content);
+            }
+        }
+        SelectedTab::Batch => {
+            table::render(model, frame, layout.content);
+
+            if (model.task_store.batch.tasks.len() * 3) > layout.content.height as usize {
+                scrollbar::render(model, frame, layout.content);
+            }
+        }
+        SelectedTab::Playlist => {
+            table::render(model, frame, layout.content);
+
+            if (model.task_store.playlist.tasks.len() * 3) > layout.content.height as usize {
+                scrollbar::render(model, frame, layout.content);
+            }
         }
         _ => {}
     }
+
     progress_bar::render(model, frame, layout.progress_bar);
 
     match model.focused_block {

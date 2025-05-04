@@ -75,7 +75,7 @@ impl TaskState {
             None => 0,
         };
         self.table_state.select(Some(i));
-        self.scroll_state = self.scroll_state.position(i * 4);
+        self.scroll_state = self.scroll_state.position(i * 3);
     }
 
     pub fn previous_row(&mut self) {
@@ -90,7 +90,7 @@ impl TaskState {
             None => 0,
         };
         self.table_state.select(Some(i));
-        self.scroll_state = self.scroll_state.position(i * 4);
+        self.scroll_state = self.scroll_state.position(i * 3);
     }
 
     /// Filter tasks based on the selected menu item
@@ -115,6 +115,13 @@ impl TaskState {
                         })
                         .cloned()
                         .collect();
+                    self.scroll_state = ScrollbarState::new(
+                        (if !self.tasks.is_empty() {
+                            self.tasks.len() - 1
+                        } else {
+                            0
+                        }) * 3,
+                    );
                 }
             },
 
@@ -139,6 +146,13 @@ impl TaskState {
                         })
                         .cloned()
                         .collect();
+                    self.scroll_state = ScrollbarState::new(
+                        (if !self.tasks.is_empty() {
+                            self.tasks.len() - 1
+                        } else {
+                            0
+                        }) * 3,
+                    );
                 }
                 "all-vids" | "finished-vids" | "unfinished-vids" => {
                     self.tasks = self
@@ -160,6 +174,13 @@ impl TaskState {
                         })
                         .cloned()
                         .collect();
+                    self.scroll_state = ScrollbarState::new(
+                        (if !self.tasks.is_empty() {
+                            self.tasks.len() - 1
+                        } else {
+                            0
+                        }) * 3,
+                    );
                 }
                 "all-docs" | "finished-docs" | "unfinished-docs" => {
                     self.tasks = self
@@ -181,6 +202,13 @@ impl TaskState {
                         })
                         .cloned()
                         .collect();
+                    self.scroll_state = ScrollbarState::new(
+                        (if !self.tasks.is_empty() {
+                            self.tasks.len() - 1
+                        } else {
+                            0
+                        }) * 3,
+                    );
                 }
                 "all-compressed" | "finished-compressed" | "unfinished-compressed" => {
                     self.tasks = self
@@ -202,6 +230,13 @@ impl TaskState {
                         })
                         .cloned()
                         .collect();
+                    self.scroll_state = ScrollbarState::new(
+                        (if !self.tasks.is_empty() {
+                            self.tasks.len() - 1
+                        } else {
+                            0
+                        }) * 3,
+                    );
                 }
                 "all-programs" | "finished-programs" | "unfinished-programs" => {
                     self.tasks = self
@@ -223,6 +258,13 @@ impl TaskState {
                         })
                         .cloned()
                         .collect();
+                    self.scroll_state = ScrollbarState::new(
+                        (if !self.tasks.is_empty() {
+                            self.tasks.len() - 1
+                        } else {
+                            0
+                        }) * 3,
+                    );
                 }
                 others => {
                     self.tasks = self
@@ -249,6 +291,13 @@ impl TaskState {
                         })
                         .cloned()
                         .collect();
+                    self.scroll_state = ScrollbarState::new(
+                        (if !self.tasks.is_empty() {
+                            self.tasks.len() - 1
+                        } else {
+                            0
+                        }) * 3,
+                    );
                 }
             },
             _ => {}
@@ -281,23 +330,41 @@ impl TaskStore {
 
         self.single = TaskState {
             db: store.single.db.clone(),
-            tasks: store.single.db,
+            tasks: store.single.db.clone(),
             table_state: TableState::default(),
-            scroll_state: ScrollbarState::default(),
+            scroll_state: ScrollbarState::new(
+                (if !store.single.db.is_empty() {
+                    store.single.db.len() - 1
+                } else {
+                    0
+                }) * 3,
+            ),
         };
 
         self.batch = TaskState {
             db: store.batch.db.clone(),
-            tasks: store.batch.db,
+            tasks: store.batch.db.clone(),
             table_state: TableState::default(),
-            scroll_state: ScrollbarState::default(),
+            scroll_state: ScrollbarState::new(
+                (if !store.batch.db.is_empty() {
+                    store.batch.db.len() - 1
+                } else {
+                    0
+                }) * 3,
+            ),
         };
 
         self.playlist = TaskState {
             db: store.playlist.db.clone(),
-            tasks: store.playlist.db,
+            tasks: store.playlist.db.clone(),
             table_state: TableState::default(),
-            scroll_state: ScrollbarState::default(),
+            scroll_state: ScrollbarState::new(
+                (if !store.playlist.db.is_empty() {
+                    store.playlist.db.len() - 1
+                } else {
+                    0
+                }) * 3,
+            ),
         };
 
         Ok(self.clone())

@@ -1,6 +1,6 @@
-# Cupcake
+# Cupcake (in development; not yet functional)
 
-A modern TUI (Terminal User Interface) frontend for yt-dlp, built with Rust and [Ratatui](https://github.com/ratatui-org/ratatui).
+A modern and beautiful TUI frontend for yt-dlp, built with Rust and [Ratatui](https://github.com/ratatui-org/ratatui).
 
 ## Features
 

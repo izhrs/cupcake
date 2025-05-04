@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::Rect,
-    style::{Modifier, Style, palette::tailwind},
+    style::{Modifier, Style},
     widgets::{Block, BorderType, Borders, Tabs},
 };
 
@@ -14,11 +14,11 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
-                .border_style(Style::default().fg(tailwind::PURPLE.c950)),
+                .border_style(Style::default().fg(model.theme.secondary.c950)),
         )
         .highlight_style(
             Style::default()
-                .fg(tailwind::PURPLE.c500)
+                .fg(model.theme.secondary.c500)
                 .add_modifier(Modifier::BOLD),
         )
         .divider("|")

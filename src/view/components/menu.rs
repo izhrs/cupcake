@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::Rect,
-    style::{Modifier, Style, palette::tailwind},
+    style::{Modifier, Style},
     widgets::{Block, BorderType, Borders, Padding},
 };
 
@@ -14,19 +14,19 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
         .expect("all item identifiers must be unique")
         .block(
             Block::default()
-                .title_bottom(format!("{:?}", model.menu_state.selected()))
+                // .title_bottom(format!("{:?}", model.menu_state.selected()))
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
                 .border_style(Style::default().fg(match model.focused_block {
-                    FocusedBlock::Menu => tailwind::PURPLE.c800,
-                    _ => tailwind::PURPLE.c950,
+                    FocusedBlock::Menu => model.theme.secondary.c800,
+                    _ => model.theme.secondary.c950,
                 }))
                 .padding(Padding::symmetric(2, 1)),
         )
         .highlight_style(
             Style::new()
-                .fg(tailwind::PURPLE.c500)
-                .bg(tailwind::NEUTRAL.c900)
+                .fg(model.theme.secondary.c500)
+                .bg(model.theme.primary.c900)
                 .add_modifier(Modifier::BOLD),
         )
         .highlight_symbol("");

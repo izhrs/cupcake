@@ -7,14 +7,17 @@ use crate::{
 
 pub fn update(model: &mut AppState, msg: Msg) {
     match msg {
-        Msg::Quit => model.running = false,
+        Msg::Quit => {
+            model.task_store.save().expect("failed to save tasks");
+            model.running = false;
+        }
 
         Msg::Content(msg) => match msg {
             ContentMsg::FocusMenu => model.focused_block = FocusedBlock::Menu,
             ContentMsg::SwitchNextTab => model.selected_tab = model.selected_tab.next(),
             ContentMsg::SwitchPreviousTab => model.selected_tab = model.selected_tab.previous(),
-            ContentMsg::SelectNextRow => model.next_row(),
-            ContentMsg::SelectPreviousRow => model.previous_row(),
+            ContentMsg::SelectNextRow => model.task_store.single.next_row(),
+            ContentMsg::SelectPreviousRow => model.task_store.single.previous_row(),
             ContentMsg::ProgressUp => {
                 if model.progress < 100.0 {
                     model.progress += 1.0;
@@ -52,16 +55,15 @@ pub fn update(model: &mut AppState, msg: Msg) {
             }
             MenuMsg::ApplyMenuFilter => {
                 model
-                    .task_state
+                    .task_store
+                    .single
                     .apply_menu_filter(model.menu_state.selected().to_owned());
             }
         },
 
         Msg::Modal(msg) => match msg {
             ModalMsg::AddTask => model.focused_block = FocusedBlock::Modal,
-            ModalMsg::ConfirmDeleteTask => {
-                todo!()
-            }
+            ModalMsg::ConfirmDeleteTask => {}
             ModalMsg::Close => model.focused_block = FocusedBlock::Content,
         },
     }

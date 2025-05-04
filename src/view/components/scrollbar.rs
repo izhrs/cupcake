@@ -16,6 +16,6 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
             vertical: 1,
             horizontal: 1,
         }),
-        &mut model.scrollbar_state,
-    );
+        &mut model.task_store.single.scroll_state,
+    )
 }

@@ -3,14 +3,14 @@ mod layout;
 
 use ratatui::{
     Frame,
-    style::{Style, palette::tailwind},
+    style::Style,
     widgets::{Block, Borders},
 };
 
 use crate::{
-    model::state::AppState,
+    model::state::{AppState, FocusedBlock, SelectedTab},
     view::{
-        components::{action_button, logo, menu, progress_bar, scrollbar, table, tabs},
+        components::{action_button, add_task, logo, menu, progress_bar, scrollbar, table, tabs},
         layout::LayoutAreas,
     },
 };
@@ -18,8 +18,8 @@ use crate::{
 pub fn draw(model: &mut AppState, frame: &mut Frame) {
     let screen = Block::default().borders(Borders::NONE).style(
         Style::default()
-            .fg(tailwind::NEUTRAL.c500)
-            .bg(tailwind::NEUTRAL.c950),
+            .fg(model.theme.primary.c500)
+            .bg(model.theme.primary.c950),
     );
 
     frame.render_widget(&screen, frame.area());
@@ -29,7 +29,17 @@ pub fn draw(model: &mut AppState, frame: &mut Frame) {
     logo::render(model, frame, layout.logo);
     menu::render(model, frame, layout.menu);
     tabs::render(model, frame, layout.tabs);
-    table::render(model, frame, layout.content);
-    scrollbar::render(model, frame, layout.content);
+    match model.selected_tab {
+        SelectedTab::Single => {
+            table::render(model, frame, layout.content);
+            scrollbar::render(model, frame, layout.content);
+        }
+        _ => {}
+    }
     progress_bar::render(model, frame, layout.progress_bar);
+
+    match model.focused_block {
+        FocusedBlock::Modal => add_task::render(model, frame, layout.modal),
+        _ => {}
+    }
 }

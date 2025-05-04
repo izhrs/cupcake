@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
-    style::{Modifier, Style, palette::tailwind},
+    style::{Modifier, Style},
     text::{Line, Span, Text},
     widgets::{Block, BorderType, Borders, Cell, HighlightSpacing, Padding, Row, Table},
 };
@@ -10,16 +10,16 @@ use crate::model::state::{AppState, FocusedBlock};
 
 pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
     let header_style = Style::default()
-        .fg(tailwind::PURPLE.c100)
-        .bg(tailwind::PURPLE.c950);
+        .fg(model.theme.secondary.c100)
+        .bg(model.theme.secondary.c950);
     let selected_row_style = Style::default()
         .add_modifier(Modifier::REVERSED)
-        .fg(tailwind::PURPLE.c800)
-        .bg(tailwind::PURPLE.c100);
-    let selected_col_style = Style::default().fg(tailwind::PURPLE.c600);
+        .fg(model.theme.secondary.c800)
+        .bg(model.theme.secondary.c100);
+    let selected_col_style = Style::default().fg(model.theme.secondary.c600);
     let selected_cell_style = Style::default()
         .add_modifier(Modifier::REVERSED)
-        .fg(tailwind::PURPLE.c800);
+        .fg(model.theme.secondary.c800);
 
     let header = ["Name", "Speed", "Size", "Progress", "ETA", "Status"]
         .into_iter()
@@ -28,26 +28,32 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
         .style(header_style)
         .height(1);
 
-    let rows = model.task_state.tasks.iter().enumerate().map(|(i, data)| {
-        let color = match i % 2 {
-            0 => tailwind::NEUTRAL.c900,
-            _ => tailwind::NEUTRAL.c950,
-        };
+    let rows = model
+        .task_store
+        .single
+        .tasks
+        .iter()
+        .enumerate()
+        .map(|(i, data)| {
+            let color = match i % 2 {
+                0 => model.theme.primary.c900,
+                _ => model.theme.primary.c950,
+            };
 
-        let item = [
-            Text::from(data.name.to_string()),
-            Text::from(format!("{:.2} MB/s", data.speed)),
-            Text::from(format!("{:.0} MB", data.size)),
-            Text::from(format!("{:.0} %", data.progress * 100.0)),
-            Text::from(data.eta.clone()),
-            Text::from(data.status.to_string()),
-        ];
-        item.into_iter()
-            .map(|content| Cell::from(Text::from(format!("\n{}\n", content))))
-            .collect::<Row>()
-            .style(Style::new().fg(tailwind::NEUTRAL.c100).bg(color))
-            .height(3)
-    });
+            let item = [
+                Text::from(data.name.to_string()),
+                Text::from(format!("{:.2} MB/s", data.speed)),
+                Text::from(format!("{:.0} MB", data.size)),
+                Text::from(format!("{:.0} %", data.progress)),
+                Text::from(data.eta.clone()),
+                Text::from(data.status.to_string()),
+            ];
+            item.into_iter()
+                .map(|content| Cell::from(Text::from(format!("\n{}\n", content))))
+                .collect::<Row>()
+                .style(Style::new().fg(model.theme.primary.c100).bg(color))
+                .height(3)
+        });
 
     let t = Table::new(
         rows,
@@ -66,12 +72,12 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
             .border_type(BorderType::Plain)
             .title(Line::from(vec![
                 Span::from("[ "),
-                Span::styled("TASKS", Style::default().fg(tailwind::PURPLE.c500)),
+                Span::styled("TASKS", Style::default().fg(model.theme.secondary.c500)),
                 Span::from(" ]"),
             ]))
             .border_style(Style::default().fg(match model.focused_block {
-                FocusedBlock::Content => tailwind::PURPLE.c800,
-                _ => tailwind::PURPLE.c950,
+                FocusedBlock::Content => model.theme.secondary.c800,
+                _ => model.theme.secondary.c950,
             }))
             .padding(Padding::new(0, 0, 1, 0)),
     )
@@ -82,5 +88,5 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
     .highlight_symbol(Text::from("  "))
     .highlight_spacing(HighlightSpacing::Always);
 
-    frame.render_stateful_widget(t, area, &mut model.table_state);
+    frame.render_stateful_widget(t, area, &mut model.task_store.single.table_state);
 }

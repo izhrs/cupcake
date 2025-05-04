@@ -1,0 +1,604 @@
+{
+  "single": {
+    "tasks": [
+      {
+        "name": "visual_studio_2022.exe",
+        "source": "https://download.visualstudio.microsoft.com/vs2022.exe",
+        "destination": "/home/user/Downloads/visual_studio_2022.exe",
+        "speed": 2345.7,
+        "size": 32457.0,
+        "progress": 45.8,
+        "eta": "8:45",
+        "status": "running"
+      },
+      {
+        "name": "android_studio_2023.dmg",
+        "source": "https://developer.android.com/studio/android_studio_2023.dmg",
+        "destination": "/home/user/Downloads/android_studio_2023.dmg",
+        "speed": 0.0,
+        "size": 17800.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "godot_engine_4.1.2.zip",
+        "source": "https://downloads.tuxfamily.org/godotengine/4.1.2/godot_engine_4.1.2.zip",
+        "destination": "/home/user/Downloads/godot_engine_4.1.2.zip",
+        "speed": 0.0,
+        "size": 18560.0,
+        "progress": 78.3,
+        "eta": "N/A",
+        "status": "paused"
+      },
+      {
+        "name": "python-3.11.4.pkg",
+        "source": "https://www.python.org/ftp/python/3.11.4/python-3.11.4.pkg",
+        "destination": "/home/user/Downloads/python-3.11.4.pkg",
+        "speed": 0.0,
+        "size": 4250.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "vegas_pro_2023.iso",
+        "source": "https://example.com/software/vegas_pro_2023.iso",
+        "destination": "/home/user/Downloads/vegas_pro_2023.iso",
+        "speed": 0.0,
+        "size": 7800.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "adobe_photoshop_2023.exe",
+        "source": "https://example.com/software/adobe_photoshop_2023.exe",
+        "destination": "/home/user/Downloads/adobe_photoshop_2023.exe",
+        "speed": 1875.3,
+        "size": 35600.0,
+        "progress": 34.5,
+        "eta": "15:23",
+        "status": "running"
+      },
+      {
+        "name": "office365_suite_2023.iso",
+        "source": "https://example.com/software/office365_suite_2023.iso",
+        "destination": "/home/user/Downloads/office365_suite_2023.iso",
+        "speed": 0.0,
+        "size": 4500.0,
+        "progress": 23.7,
+        "eta": "N/A",
+        "status": "failed"
+      },
+      {
+        "name": "blender-3.6.1-windows-x64.msi",
+        "source": "https://download.blender.org/release/Blender3.6/blender-3.6.1-windows-x64.msi",
+        "destination": "/home/user/Downloads/blender-3.6.1-windows-x64.msi",
+        "speed": 0.0,
+        "size": 2560.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "cybersecurity_toolkit_2023.tar.gz",
+        "source": "https://example.com/security/cybersecurity_toolkit_2023.tar.gz",
+        "destination": "/home/user/Downloads/cybersecurity_toolkit_2023.tar.gz",
+        "speed": 0.0,
+        "size": 12800.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "driver_nvidia_rtx_2023.11.exe",
+        "source": "https://nvidia.com/drivers/driver_nvidia_rtx_2023.11.exe",
+        "destination": "/home/user/Downloads/driver_nvidia_rtx_2023.11.exe",
+        "speed": 0.0,
+        "size": 8300.0,
+        "progress": 48.2,
+        "eta": "N/A",
+        "status": "paused"
+      },
+      {
+        "name": "davinci_resolve_18.0.exe",
+        "source": "https://example.com/software/davinci_resolve_18.0.exe",
+        "destination": "/home/user/Downloads/davinci_resolve_18.0.exe",
+        "speed": 0.0,
+        "size": 23500.0,
+        "progress": 63.1,
+        "eta": "N/A",
+        "status": "failed"
+      },
+      {
+        "name": "autoCAD_2024_installer.exe",
+        "source": "https://example.com/software/autoCAD_2024_installer.exe",
+        "destination": "/home/user/Downloads/autoCAD_2024_installer.exe",
+        "speed": 0.0,
+        "size": 5670000.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "diablo4_installer_battlenet.exe",
+        "source": "https://blizzard.com/games/diablo4_installer_battlenet.exe",
+        "destination": "/home/user/Downloads/diablo4_installer_battlenet.exe",
+        "speed": 3258.4,
+        "size": 45600000.0,
+        "progress": 17.8,
+        "eta": "3:45:26",
+        "status": "running"
+      },
+      {
+        "name": "ableton_live_11_suite.dmg",
+        "source": "https://example.com/audio/ableton_live_11_suite.dmg",
+        "destination": "/home/user/Downloads/ableton_live_11_suite.dmg",
+        "speed": 0.0,
+        "size": 3450000.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "cubase_pro_12.iso",
+        "source": "https://example.com/audio/cubase_pro_12.iso",
+        "destination": "/home/user/Downloads/cubase_pro_12.iso",
+        "speed": 0.0,
+        "size": 2750000.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "taylor_swift_midnights_album.flac",
+        "source": "https://example.com/music/taylor_swift_midnights_album.flac",
+        "destination": "/home/user/Downloads/taylor_swift_midnights_album.flac",
+        "speed": 1756.2,
+        "size": 458700.0,
+        "progress": 67.3,
+        "eta": "2:15",
+        "status": "running"
+      },
+      {
+        "name": "dune_part_two_2024_hd.mp4",
+        "source": "https://example.com/movies/dune_part_two_2024_hd.mp4",
+        "destination": "/home/user/Downloads/dune_part_two_2024_hd.mp4",
+        "speed": 0.0,
+        "size": 8570000.0,
+        "progress": 23.6,
+        "eta": "N/A",
+        "status": "paused"
+      },
+      {
+        "name": "financial_report_q2_2023.pdf",
+        "source": "https://example.com/documents/financial_report_q2_2023.pdf",
+        "destination": "/home/user/Downloads/financial_report_q2_2023.pdf",
+        "speed": 0.0,
+        "size": 12560.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "beethoven_complete_symphonies.zip",
+        "source": "https://example.com/music/beethoven_complete_symphonies.zip",
+        "destination": "/home/user/Downloads/beethoven_complete_symphonies.zip",
+        "speed": 3214.5,
+        "size": 2345000.0,
+        "progress": 42.8,
+        "eta": "12:37",
+        "status": "running"
+      },
+      {
+        "name": "interstellar_soundtrack_flac.tar",
+        "source": "https://example.com/music/interstellar_soundtrack_flac.tar",
+        "destination": "/home/user/Downloads/interstellar_soundtrack_flac.tar",
+        "speed": 0.0,
+        "size": 875000.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "product_presentation_2023.pptx",
+        "source": "https://example.com/documents/product_presentation_2023.pptx",
+        "destination": "/home/user/Downloads/product_presentation_2023.pptx",
+        "speed": 0.0,
+        "size": 25780.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "stranger_things_s04_complete.mkv",
+        "source": "https://example.com/series/stranger_things_s04_complete.mkv",
+        "destination": "/home/user/Downloads/stranger_things_s04_complete.mkv",
+        "speed": 0.0,
+        "size": 24500000.0,
+        "progress": 54.2,
+        "eta": "N/A",
+        "status": "failed"
+      },
+      {
+        "name": "excel_advanced_formulas_guide.xlsx",
+        "source": "https://example.com/documents/excel_advanced_formulas_guide.xlsx",
+        "destination": "/home/user/Downloads/excel_advanced_formulas_guide.xlsx",
+        "speed": 785.3,
+        "size": 15420.0,
+        "progress": 89.3,
+        "eta": "0:18",
+        "status": "running"
+      },
+      {
+        "name": "coldplay_discography_320kbps.zip",
+        "source": "https://example.com/music/coldplay_discography_320kbps.zip",
+        "destination": "/home/user/Downloads/coldplay_discography_320kbps.zip",
+        "speed": 0.0,
+        "size": 1256000.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "nature_documentary_4k_hdr.mp4",
+        "source": "https://example.com/videos/nature_documentary_4k_hdr.mp4",
+        "destination": "/home/user/Downloads/nature_documentary_4k_hdr.mp4",
+        "speed": 0.0,
+        "size": 12450000.0,
+        "progress": 78.5,
+        "eta": "N/A",
+        "status": "paused"
+      }
+    ]
+  },
+  "batch": {
+    "tasks": [
+      {
+        "name": "wildlife_photography_collection.zip",
+        "source": "https://example.com/media/wildlife_photography_collection.zip",
+        "destination": "/home/user/Downloads/wildlife_photography_collection.zip",
+        "speed": 2874.1,
+        "size": 3856400.0,
+        "progress": 56.8,
+        "eta": "12:45",
+        "status": "running"
+      },
+      {
+        "name": "summer_vacation_photos_2023.tar",
+        "source": "https://example.com/media/summer_vacation_photos_2023.tar",
+        "destination": "/home/user/Downloads/summer_vacation_photos_2023.tar",
+        "speed": 0.0,
+        "size": 2145800.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "avengers_endgame_4k_hdr.mkv",
+        "source": "https://example.com/media/avengers_endgame_4k_hdr.mkv",
+        "destination": "/home/user/Downloads/avengers_endgame_4k_hdr.mkv",
+        "speed": 0.0,
+        "size": 18750200.0,
+        "progress": 72.3,
+        "eta": "N/A",
+        "status": "paused"
+      },
+      {
+        "name": "classical_music_collection_flac.zip",
+        "source": "https://example.com/media/classical_music_collection_flac.zip",
+        "destination": "/home/user/Downloads/classical_music_collection_flac.zip",
+        "speed": 1843.5,
+        "size": 4562100.0,
+        "progress": 34.8,
+        "eta": "23:15",
+        "status": "running"
+      },
+      {
+        "name": "wedding_ceremony_footage_2023.mp4",
+        "source": "https://example.com/media/wedding_ceremony_footage_2023.mp4",
+        "destination": "/home/user/Downloads/wedding_ceremony_footage_2023.mp4",
+        "speed": 0.0,
+        "size": 8923700.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "rock_classics_discography_320kbps.tar",
+        "source": "https://example.com/media/rock_classics_discography_320kbps.tar",
+        "destination": "/home/user/Downloads/rock_classics_discography_320kbps.tar",
+        "speed": 0.0,
+        "size": 5678300.0,
+        "progress": 12.8,
+        "eta": "N/A",
+        "status": "failed"
+      },
+      {
+        "name": "landscape_wallpapers_4k.zip",
+        "source": "https://example.com/media/landscape_wallpapers_4k.zip",
+        "destination": "/home/user/Downloads/landscape_wallpapers_4k.zip",
+        "speed": 0.0,
+        "size": 892600.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "podcast_series_complete_2023.tar",
+        "source": "https://example.com/media/podcast_series_complete_2023.tar",
+        "destination": "/home/user/Downloads/podcast_series_complete_2023.tar",
+        "speed": 0.0,
+        "size": 3214500.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "standup_comedy_special_hd.mp4",
+        "source": "https://example.com/media/standup_comedy_special_hd.mp4",
+        "destination": "/home/user/Downloads/standup_comedy_special_hd.mp4",
+        "speed": 0.0,
+        "size": 4321900.0,
+        "progress": 45.3,
+        "eta": "N/A",
+        "status": "failed"
+      },
+      {
+        "name": "modern_art_exhibition_photos.zip",
+        "source": "https://example.com/media/modern_art_exhibition_photos.zip",
+        "destination": "/home/user/Downloads/modern_art_exhibition_photos.zip",
+        "speed": 0.0,
+        "size": 765200.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "taylor_swift_discography_flac.tar",
+        "source": "https://example.com/music/taylor_swift_discography_flac.tar",
+        "destination": "/home/user/Downloads/taylor_swift_discography_flac.tar",
+        "speed": 2142.8,
+        "size": 4850000.0,
+        "progress": 28.7,
+        "eta": "32:10",
+        "status": "running"
+      },
+      {
+        "name": "beatles_remastered_collection_2023.zip",
+        "source": "https://example.com/music/beatles_remastered_collection_2023.zip",
+        "destination": "/home/user/Downloads/beatles_remastered_collection_2023.zip",
+        "speed": 0.0,
+        "size": 3760000.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "planet_earth_II_complete_4k.mkv",
+        "source": "https://example.com/videos/planet_earth_II_complete_4k.mkv",
+        "destination": "/home/user/Downloads/planet_earth_II_complete_4k.mkv",
+        "speed": 0.0,
+        "size": 25670000.0,
+        "progress": 67.5,
+        "eta": "N/A",
+        "status": "paused"
+      },
+      {
+        "name": "stock_footage_aerial_cities_4k.tar",
+        "source": "https://example.com/videos/stock_footage_aerial_cities_4k.tar",
+        "destination": "/home/user/Downloads/stock_footage_aerial_cities_4k.tar",
+        "speed": 0.0,
+        "size": 8920000.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "electronic_music_festivals_2023.tar.gz",
+        "source": "https://example.com/music/electronic_music_festivals_2023.tar.gz",
+        "destination": "/home/user/Downloads/electronic_music_festivals_2023.tar.gz",
+        "speed": 0.0,
+        "size": 6450000.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "architectural_photography_collection.zip",
+        "source": "https://example.com/photos/architectural_photography_collection.zip",
+        "destination": "/home/user/Downloads/architectural_photography_collection.zip",
+        "speed": 0.0,
+        "size": 2340000.0,
+        "progress": 23.7,
+        "eta": "N/A",
+        "status": "failed"
+      },
+      {
+        "name": "jazz_classics_collection_24bit.tar",
+        "source": "https://example.com/music/jazz_classics_collection_24bit.tar",
+        "destination": "/home/user/Downloads/jazz_classics_collection_24bit.tar",
+        "speed": 3241.6,
+        "size": 7850000.0,
+        "progress": 45.2,
+        "eta": "25:18",
+        "status": "running"
+      }
+    ]
+  },
+  "playlist": {
+    "tasks": [
+      {
+        "name": "advanced_machine_learning_course.pdf",
+        "source": "https://example.com/education/advanced_machine_learning_course.pdf",
+        "destination": "/home/user/Downloads/advanced_machine_learning_course.pdf",
+        "speed": 1345.2,
+        "size": 125700.0,
+        "progress": 87.4,
+        "eta": "00:32",
+        "status": "running"
+      },
+      {
+        "name": "history_of_ancient_civilizations_ebook.epub",
+        "source": "https://example.com/books/history_of_ancient_civilizations_ebook.epub",
+        "destination": "/home/user/Downloads/history_of_ancient_civilizations_ebook.epub",
+        "speed": 0.0,
+        "size": 18400.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "business_management_strategies_2023.pdf",
+        "source": "https://example.com/education/business_management_strategies_2023.pdf",
+        "destination": "/home/user/Downloads/business_management_strategies_2023.pdf",
+        "speed": 0.0,
+        "size": 45300.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "quantum_physics_illustrated_guide.pdf",
+        "source": "https://example.com/education/quantum_physics_illustrated_guide.pdf",
+        "destination": "/home/user/Downloads/quantum_physics_illustrated_guide.pdf",
+        "speed": 0.0,
+        "size": 78600.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "bestselling_novel_collection_2023.zip",
+        "source": "https://example.com/books/bestselling_novel_collection_2023.zip",
+        "destination": "/home/user/Downloads/bestselling_novel_collection_2023.zip",
+        "speed": 0.0,
+        "size": 345800.0,
+        "progress": 43.2,
+        "eta": "N/A",
+        "status": "paused"
+      },
+      {
+        "name": "financial_planning_templates.xlsx",
+        "source": "https://example.com/documents/financial_planning_templates.xlsx",
+        "destination": "/home/user/Downloads/financial_planning_templates.xlsx",
+        "speed": 0.0,
+        "size": 8200.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "programming_languages_comparison_guide.pdf",
+        "source": "https://example.com/education/programming_languages_comparison_guide.pdf",
+        "destination": "/home/user/Downloads/programming_languages_comparison_guide.pdf",
+        "speed": 0.0,
+        "size": 32500.0,
+        "progress": 35.7,
+        "eta": "N/A",
+        "status": "failed"
+      },
+      {
+        "name": "world_geography_atlas_2023.pdf",
+        "source": "https://example.com/education/world_geography_atlas_2023.pdf",
+        "destination": "/home/user/Downloads/world_geography_atlas_2023.pdf",
+        "speed": 0.0,
+        "size": 154300.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "cooking_recipes_collection.epub",
+        "source": "https://example.com/books/cooking_recipes_collection.epub",
+        "destination": "/home/user/Downloads/cooking_recipes_collection.epub",
+        "speed": 0.0,
+        "size": 28900.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "academic_research_papers_2023.zip",
+        "source": "https://example.com/documents/academic_research_papers_2023.zip",
+        "destination": "/home/user/Downloads/academic_research_papers_2023.zip",
+        "speed": 0.0,
+        "size": 87600.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "harvard_business_review_archive.pdf",
+        "source": "https://example.com/business/harvard_business_review_archive.pdf",
+        "destination": "/home/user/Downloads/harvard_business_review_archive.pdf",
+        "speed": 1456.3,
+        "size": 245000.0,
+        "progress": 67.8,
+        "eta": "02:15",
+        "status": "running"
+      },
+      {
+        "name": "learn_japanese_complete_course.zip",
+        "source": "https://example.com/education/learn_japanese_complete_course.zip",
+        "destination": "/home/user/Downloads/learn_japanese_complete_course.zip",
+        "speed": 0.0,
+        "size": 1250000.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "scientific_journal_subscriptions_2023.zip",
+        "source": "https://example.com/academic/scientific_journal_subscriptions_2023.zip",
+        "destination": "/home/user/Downloads/scientific_journal_subscriptions_2023.zip",
+        "speed": 0.0,
+        "size": 567000.0,
+        "progress": 75.4,
+        "eta": "N/A",
+        "status": "paused"
+      },
+      {
+        "name": "investment_strategies_ebook_collection.zip",
+        "source": "https://example.com/finance/investment_strategies_ebook_collection.zip",
+        "destination": "/home/user/Downloads/investment_strategies_ebook_collection.zip",
+        "speed": 0.0,
+        "size": 178000.0,
+        "progress": 100.0,
+        "eta": "0:00",
+        "status": "finished"
+      },
+      {
+        "name": "medical_textbooks_2023_edition.tar",
+        "source": "https://example.com/education/medical_textbooks_2023_edition.tar",
+        "destination": "/home/user/Downloads/medical_textbooks_2023_edition.tar",
+        "speed": 0.0,
+        "size": 3450000.0,
+        "progress": 0.0,
+        "eta": "N/A",
+        "status": "queued"
+      },
+      {
+        "name": "fiction_bestsellers_2023_collection.epub",
+        "source": "https://example.com/books/fiction_bestsellers_2023_collection.epub",
+        "destination": "/home/user/Downloads/fiction_bestsellers_2023_collection.epub",
+        "speed": 0.0,
+        "size": 156000.0,
+        "progress": 28.5,
+        "eta": "N/A",
+        "status": "failed"
+      },
+      {
+        "name": "web_development_tutorial_series.zip",
+        "source": "https://example.com/programming/web_development_tutorial_series.zip",
+        "destination": "/home/user/Downloads/web_development_tutorial_series.zip",
+        "speed": 2145.8,
+        "size": 876000.0,
+        "progress": 56.3,
+        "eta": "06:45",
+        "status": "running"
+      }
+    ]
+  }
+}

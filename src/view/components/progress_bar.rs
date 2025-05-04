@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::Rect,
-    style::{Style, palette::tailwind},
+    style::Style,
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, Gauge},
 };
@@ -16,20 +16,20 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
                 .border_type(BorderType::Plain)
                 .title(Line::from(vec![
                     Span::from("[ "),
-                    Span::styled("PROGRESS", Style::default().fg(tailwind::PURPLE.c500)),
+                    Span::styled("PROGRESS", Style::default().fg(model.theme.secondary.c500)),
                     Span::from(" ]"),
                 ]))
-                .border_style(Style::default().fg(tailwind::PURPLE.c950)),
+                .border_style(Style::default().fg(model.theme.secondary.c950)),
         )
         .gauge_style(
             Style::default()
                 .fg(match model.progress {
-                    0.0..=25.0 => tailwind::PURPLE.c800,
-                    25.0..=50.0 => tailwind::PURPLE.c700,
-                    50.0..=75.0 => tailwind::PURPLE.c600,
-                    _ => tailwind::PURPLE.c500,
+                    0.0..=25.0 => model.theme.secondary.c800,
+                    25.0..=50.0 => model.theme.secondary.c700,
+                    50.0..=75.0 => model.theme.secondary.c600,
+                    _ => model.theme.secondary.c500,
                 })
-                .bg(tailwind::PURPLE.c950),
+                .bg(model.theme.secondary.c950),
         )
         .percent(model.progress as u16);
 

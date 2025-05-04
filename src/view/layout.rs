@@ -7,6 +7,7 @@ pub struct LayoutAreas {
     pub action_button: Rect,
     pub content: Rect,
     pub progress_bar: Rect,
+    pub modal: Rect,
 }
 
 impl LayoutAreas {
@@ -41,6 +42,14 @@ impl LayoutAreas {
         ])
         .split(content_layout[0]);
 
+        // take up a third of the screen vertically and half horizontally
+        let modal_area = Rect {
+            x: area.width / 4,
+            y: area.height / 3,
+            width: area.width / 2,
+            height: area.height / 3,
+        };
+
         Self {
             logo: sidebar_layout[0],
             menu: sidebar_layout[1],
@@ -48,6 +57,7 @@ impl LayoutAreas {
             action_button: action_layout[1],
             content: content_layout[1],
             progress_bar: main_layout[1],
+            modal: modal_area,
         }
     }
 }

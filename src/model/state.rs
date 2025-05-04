@@ -1,36 +1,33 @@
 use ratatui::{
     style::{Modifier, Style, palette::tailwind},
     text::Text,
-    widgets::{ScrollbarState, TableState},
 };
 
 use tui_tree_widget::{TreeItem, TreeState};
 
-use crate::model::task::{Task, TaskState};
+use crate::model::task::TaskStore;
 
 pub struct AppState {
     pub(crate) focused_block: FocusedBlock, // focused window
-    pub(crate) table_state: TableState,
-    pub(crate) scrollbar_state: ScrollbarState,
     pub(crate) progress: f32,
-    pub(crate) task_state: TaskState,
+    pub(crate) task_store: TaskStore,
     pub(crate) selected_tab: SelectedTab,
     pub(crate) menu_state: TreeState<&'static str>,
     pub(crate) menu_items: Vec<TreeItem<'static, &'static str>>,
+    pub(crate) theme: Theme,
     pub(crate) running: bool,
 }
 
 impl AppState {
-    pub fn new(tasks: Vec<Task>) -> Self {
+    pub fn new() -> Self {
         Self {
             running: true,
             focused_block: FocusedBlock::Content,
-            table_state: TableState::default(),
-            scrollbar_state: ScrollbarState::default(),
             progress: 0.0,
-            task_state: TaskState::new(tasks),
+            task_store: TaskStore::new().load().unwrap_or(TaskStore::default()),
             selected_tab: SelectedTab::default(),
             menu_state: TreeState::default(),
+            theme: Theme::default(),
             menu_items: vec![
                 TreeItem::new(
                     "all",
@@ -99,39 +96,8 @@ impl AppState {
             ],
         }
     }
-
-    pub fn next_row(&mut self) {
-        let i = match self.table_state.selected() {
-            Some(i) => {
-                if i >= self.task_state.tasks.len() - 1 {
-                    0
-                } else {
-                    i + 1
-                }
-            }
-            None => 0,
-        };
-        self.table_state.select(Some(i));
-        self.scrollbar_state = self.scrollbar_state.position(i * 4);
-    }
-
-    pub fn previous_row(&mut self) {
-        let i = match self.table_state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    self.task_state.tasks.len() - 1
-                } else {
-                    i - 1
-                }
-            }
-            None => 0,
-        };
-        self.table_state.select(Some(i));
-        self.scrollbar_state = self.scrollbar_state.position(i * 4);
-    }
 }
 
-#[derive(Clone)]
 pub(crate) enum FocusedBlock {
     Content,
     Menu,
@@ -174,6 +140,22 @@ impl SelectedTab {
             3 => SelectedTab::Settings,
             4 => SelectedTab::About,
             _ => SelectedTab::Single,
+        }
+    }
+}
+
+pub struct Theme {
+    pub(crate) primary: tailwind::Palette,
+    pub(crate) secondary: tailwind::Palette,
+    pub(crate) accent: tailwind::Palette,
+}
+
+impl Theme {
+    pub fn default() -> Self {
+        Self {
+            primary: tailwind::NEUTRAL,
+            secondary: tailwind::PURPLE,
+            accent: tailwind::GREEN,
         }
     }
 }

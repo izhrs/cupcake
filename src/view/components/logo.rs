@@ -8,7 +8,7 @@ use ratatui::{
 
 use crate::model::state::AppState;
 
-pub fn render(_model: &mut AppState, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
     let logo = Paragraph::new(
         Line::from(vec![
             Span::styled("C ", Style::default().fg(tailwind::PURPLE.c500)),
@@ -26,7 +26,7 @@ pub fn render(_model: &mut AppState, frame: &mut Frame, area: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Double)
-            .border_style(Style::default().fg(tailwind::PURPLE.c950))
+            .border_style(Style::default().fg(model.theme.secondary.c950))
             .padding(Padding::uniform(1)),
     );
 

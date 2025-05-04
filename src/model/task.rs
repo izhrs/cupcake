@@ -1,19 +1,26 @@
-use std::path::PathBuf;
+use color_eyre::Result;
+use std::{collections::VecDeque, fs::File, path::PathBuf};
+
+use ratatui::widgets::{ScrollbarState, TableState};
+
+use serde::{Deserialize, Serialize};
+
 use url::Url;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Task {
     pub(crate) name: String,
     pub(crate) source: Url,
     pub(crate) destination: PathBuf,
     pub(crate) speed: f32,
-    pub(crate) size: f32,
+    pub(crate) size: f64,
     pub(crate) progress: f32,
     pub(crate) eta: String,
     pub(crate) status: TaskStatus,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum TaskStatus {
     Running,
     Paused,
@@ -35,17 +42,55 @@ impl std::fmt::Display for TaskStatus {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TaskState {
-    db: Vec<Task>,
-    pub(crate) tasks: Vec<Task>,
+    #[serde(skip)]
+    db: VecDeque<Task>,
+    pub(crate) tasks: VecDeque<Task>,
+    #[serde(skip)]
+    pub(crate) table_state: TableState,
+    #[serde(skip)]
+    pub(crate) scroll_state: ScrollbarState,
 }
 
 impl TaskState {
-    pub fn new(tasks: Vec<Task>) -> Self {
+    pub fn default() -> Self {
         Self {
-            db: tasks.clone(),
-            tasks,
+            db: VecDeque::new(),
+            tasks: VecDeque::new(),
+            table_state: TableState::default(),
+            scroll_state: ScrollbarState::default(),
         }
+    }
+
+    pub fn next_row(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => {
+                if i >= self.tasks.len() - 1 {
+                    0
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.table_state.select(Some(i));
+        self.scroll_state = self.scroll_state.position(i * 4);
+    }
+
+    pub fn previous_row(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    self.tasks.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.table_state.select(Some(i));
+        self.scroll_state = self.scroll_state.position(i * 4);
     }
 
     /// Filter tasks based on the selected menu item
@@ -208,5 +253,59 @@ impl TaskState {
             },
             _ => {}
         }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TaskStore {
+    pub single: TaskState,
+    pub batch: TaskState,
+    pub playlist: TaskState,
+}
+
+impl TaskStore {
+    pub fn default() -> Self {
+        Self {
+            single: TaskState::default(),
+            batch: TaskState::default(),
+            playlist: TaskState::default(),
+        }
+    }
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn load(&mut self) -> Result<Self> {
+        let file = File::open("tasks.json")?;
+        let store: TaskStore = serde_json::from_reader(file)?;
+
+        self.single = TaskState {
+            db: store.single.tasks.clone(),
+            tasks: store.single.tasks,
+            table_state: TableState::default(),
+            scroll_state: ScrollbarState::default(),
+        };
+
+        self.batch = TaskState {
+            db: store.batch.tasks.clone(),
+            tasks: store.batch.tasks,
+            table_state: TableState::default(),
+            scroll_state: ScrollbarState::default(),
+        };
+
+        self.playlist = TaskState {
+            db: store.playlist.tasks.clone(),
+            tasks: store.playlist.tasks,
+            table_state: TableState::default(),
+            scroll_state: ScrollbarState::default(),
+        };
+
+        Ok(self.clone())
+    }
+
+    pub fn save(&self) -> Result<()> {
+        let file = File::create("tasks.json")?;
+        serde_json::to_writer_pretty(file, &self)?;
+        Ok(())
     }
 }

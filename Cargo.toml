@@ -1,6 +1,6 @@
 [package]
 name = "cupcake"
-version = "0.0.4"
+version = "0.0.6"
 edition = "2024"
 description = "A modern TUI download manager"
 authors = ["Mohamed Izhar <mohamed@izhar.xyz>"]
@@ -19,5 +19,7 @@ categories = [
 color-eyre = "0.6.3"
 crossterm = "0.29.0"
 ratatui = "0.29.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
 tui-tree-widget = "0.23.0"
-url = "2.5.4"
+url = { version = "2.5.4", features = ["serde"] }

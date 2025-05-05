@@ -37,8 +37,8 @@ impl LayoutAreas {
         .split(body_layout[1]);
 
         let action_layout = Layout::horizontal(vec![
-            Constraint::Min(20), // tabs
-            Constraint::Max(12), // action button
+            Constraint::Min(20),    // tabs
+            Constraint::Length(16), // action button
         ])
         .split(content_layout[0]);
 

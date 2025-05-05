@@ -8,7 +8,7 @@ use ratatui::{
 use crate::model::state::AppState;
 
 pub fn render(modal: &mut AppState, frame: &mut Frame, area: Rect) {
-    let button = Paragraph::new("ADD TASK")
+    let button = Paragraph::new("ADD TASK ")
         .style(
             Style::default()
                 .fg(modal.theme.accent.c600)

@@ -1,7 +1,9 @@
 pub(crate) mod message;
 
+use tui_input::backend::crossterm::EventHandler;
+
 use crate::{
-    model::state::{AppState, FocusedBlock, SelectedTab},
+    model::state::{AppState, FocusedBlock, FocusedInput, InputState, SelectedTab},
     update::message::{ContentMsg, MenuMsg, ModalMsg, Msg},
 };
 
@@ -81,9 +83,24 @@ pub fn update(model: &mut AppState, msg: Msg) {
         },
 
         Msg::Modal(msg) => match msg {
-            ModalMsg::AddTask => model.focused_block = FocusedBlock::Modal,
-            ModalMsg::ConfirmDeleteTask => {}
-            ModalMsg::Close => model.focused_block = FocusedBlock::Content,
+            ModalMsg::OpenAddTaskModal => model.focused_block = FocusedBlock::Modal,
+            ModalMsg::ToggleFocusedInput => match model.input_state.focused {
+                FocusedInput::Destination => model.input_state.focused = FocusedInput::Source,
+                FocusedInput::Source => model.input_state.focused = FocusedInput::Destination,
+            },
+            ModalMsg::HandleInputEvent(e) => match model.input_state.focused {
+                FocusedInput::Source => {
+                    model.input_state.source.handle_event(&e);
+                }
+                FocusedInput::Destination => {
+                    model.input_state.destination.handle_event(&e);
+                }
+            },
+            ModalMsg::AddTask => {}
+            ModalMsg::Close => {
+                model.input_state = InputState::new(); // clear the contents
+                model.focused_block = FocusedBlock::Content
+            }
         },
     }
 }

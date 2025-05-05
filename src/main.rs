@@ -32,7 +32,7 @@ impl App {
         while self.state.running {
             terminal.draw(|frame| draw(&mut self.state, frame))?;
 
-            let event = crossterm::event::read()?;
+            let event = ratatui::crossterm::event::read()?;
 
             if let Some(msg) = Msg::from_event(event, &self.state.focused_block) {
                 update::update(&mut self.state, msg);

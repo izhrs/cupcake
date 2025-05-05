@@ -42,7 +42,7 @@ impl std::fmt::Display for TaskStatus {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct TaskState {
     db: VecDeque<Task>,
     #[serde(skip)]
@@ -305,7 +305,7 @@ impl TaskState {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct TaskStore {
     pub single: TaskState,
     pub batch: TaskState,

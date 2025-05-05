@@ -3,10 +3,12 @@ use ratatui::{
     text::Text,
 };
 
+use tui_input::Input;
 use tui_tree_widget::{TreeItem, TreeState};
 
 use crate::model::task::TaskStore;
 
+#[derive(Default)]
 pub struct AppState {
     pub(crate) focused_block: FocusedBlock, // focused window
     pub(crate) progress: f32,
@@ -14,6 +16,7 @@ pub struct AppState {
     pub(crate) selected_tab: SelectedTab,
     pub(crate) menu_state: TreeState<&'static str>,
     pub(crate) menu_items: Vec<TreeItem<'static, &'static str>>,
+    pub(crate) input_state: InputState,
     pub(crate) theme: Theme,
     pub(crate) running: bool,
 }
@@ -22,12 +25,13 @@ impl AppState {
     pub fn new() -> Self {
         Self {
             running: true,
-            focused_block: FocusedBlock::Content,
+            focused_block: FocusedBlock::default(),
             progress: 0.0,
             task_store: TaskStore::new().load().unwrap_or(TaskStore::default()),
             selected_tab: SelectedTab::default(),
             menu_state: TreeState::default(),
             theme: Theme::default(),
+            input_state: InputState::default(),
             menu_items: vec![
                 TreeItem::new(
                     "all",
@@ -98,14 +102,15 @@ impl AppState {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default, Debug)]
 pub(crate) enum FocusedBlock {
+    #[default]
     Content,
     Menu,
     Modal,
 }
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone, Copy, Debug)]
 pub(crate) enum SelectedTab {
     #[default]
     Single,
@@ -157,14 +162,34 @@ impl SelectedTab {
     }
 }
 
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub enum FocusedInput {
+    #[default]
+    Source,
+    Destination,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct InputState {
+    pub(crate) source: Input,
+    pub(crate) destination: Input,
+    pub(crate) focused: FocusedInput,
+}
+
+impl InputState {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 pub struct Theme {
     pub(crate) primary: tailwind::Palette,
     pub(crate) secondary: tailwind::Palette,
     pub(crate) accent: tailwind::Palette,
 }
 
-impl Theme {
-    pub fn default() -> Self {
+impl Default for Theme {
+    fn default() -> Self {
         Self {
             primary: tailwind::NEUTRAL,
             secondary: tailwind::PURPLE,

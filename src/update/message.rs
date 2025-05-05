@@ -1,4 +1,4 @@
-use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
+use ratatui::crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
 
 use crate::model::state::FocusedBlock;
 
@@ -32,8 +32,10 @@ pub enum MenuMsg {
 }
 
 pub enum ModalMsg {
+    OpenAddTaskModal,
+    ToggleFocusedInput,
+    HandleInputEvent(Event),
     AddTask,
-    ConfirmDeleteTask,
     Close,
 }
 
@@ -53,7 +55,7 @@ impl Msg {
                 }
 
                 KeyCode::Char('n') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    return Some(Msg::Modal(ModalMsg::AddTask));
+                    return Some(Msg::Modal(ModalMsg::OpenAddTaskModal));
                 }
                 _ => {}
             }
@@ -89,8 +91,12 @@ impl Msg {
 
                 FocusedBlock::Modal => match key.code {
                     KeyCode::Esc => Some(Msg::Modal(ModalMsg::Close)),
-                    KeyCode::Enter => Some(Msg::Modal(ModalMsg::ConfirmDeleteTask)),
-                    _ => None,
+                    KeyCode::Enter => Some(Msg::Modal(ModalMsg::AddTask)),
+                    KeyCode::Up | KeyCode::Down | KeyCode::Tab | KeyCode::BackTab => {
+                        Some(Msg::Modal(ModalMsg::ToggleFocusedInput))
+                    }
+
+                    _ => Some(Msg::Modal(ModalMsg::HandleInputEvent(event))),
                 },
             }
         } else {

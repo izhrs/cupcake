@@ -33,7 +33,7 @@ pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
         Constraint::Length(3),
         Constraint::Length(3),
         Constraint::Min(1),
-        Constraint::Min(5),
+        Constraint::Length(5),
     ])
     .split(area);
 

@@ -42,12 +42,12 @@ impl LayoutAreas {
         ])
         .split(content_layout[0]);
 
-        // take up a third of the screen vertically and half horizontally
+        // take up a half horizontally and vertically
         let modal_area = Rect {
             x: area.width / 4,
-            y: area.height / 3,
+            y: area.height / 4,
             width: area.width / 2,
-            height: area.height / 3,
+            height: area.height / 2,
         };
 
         Self {

@@ -1,3 +1,5 @@
+use dirs;
+
 use ratatui::{
     style::{Modifier, Style, palette::tailwind},
     text::Text,
@@ -169,11 +171,27 @@ pub enum FocusedInput {
     Destination,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct InputState {
     pub(crate) source: Input,
     pub(crate) destination: Input,
     pub(crate) focused: FocusedInput,
+}
+
+impl Default for InputState {
+    fn default() -> Self {
+        let download_dir = dirs::download_dir()
+            .unwrap()
+            .to_str()
+            .unwrap_or("")
+            .to_string();
+
+        Self {
+            destination: Input::new(download_dir),
+            source: Input::default(),
+            focused: FocusedInput::default(),
+        }
+    }
 }
 
 impl InputState {

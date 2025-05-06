@@ -1,10 +1,13 @@
+use std::{
+    collections::VecDeque,
+    fs::{self, File},
+    path::PathBuf,
+};
+
 use color_eyre::Result;
-use std::{collections::VecDeque, fs::File, path::PathBuf};
-
+use dirs;
 use ratatui::widgets::{ScrollbarState, TableState};
-
 use serde::{Deserialize, Serialize};
-
 use url::Url;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -325,7 +328,9 @@ impl TaskStore {
     }
 
     pub fn load(&mut self) -> Result<Self> {
-        let file = File::open("tasks.json")?;
+        let path = dirs::data_local_dir().unwrap_or("".into()).join("cupcake");
+        fs::create_dir_all(path.clone())?;
+        let file = File::open(path.join("tasks.json"))?;
         let store: TaskStore = serde_json::from_reader(file)?;
 
         self.single = TaskState {
@@ -371,7 +376,9 @@ impl TaskStore {
     }
 
     pub fn save(&self) -> Result<()> {
-        let file = File::create("tasks.json")?;
+        let path = dirs::data_local_dir().unwrap_or("".into()).join("cupcake");
+        fs::create_dir_all(path.clone())?;
+        let file = File::create(path.join("tasks.json"))?;
         serde_json::to_writer_pretty(file, &self)?;
         Ok(())
     }

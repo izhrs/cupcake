@@ -5,7 +5,7 @@ mod view;
 use color_eyre::Result;
 use ratatui::DefaultTerminal;
 
-use crate::{model::state::AppState, update::message::Msg, view::draw};
+use crate::{model::state::Model, update::message::Msg, view::draw};
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -16,13 +16,13 @@ fn main() -> Result<()> {
 }
 
 struct App {
-    state: AppState,
+    state: Model,
 }
 
 impl App {
     fn new() -> Self {
         Self {
-            state: AppState::new(),
+            state: Model::new(),
         }
     }
 

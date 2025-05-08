@@ -5,13 +5,13 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Paragraph},
 };
 
-use crate::model::state::AppState;
+use crate::model::state::Model;
 
-pub fn render(modal: &mut AppState, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     let button = Paragraph::new("ADD TASK ")
         .style(
             Style::default()
-                .fg(modal.theme.accent.c600)
+                .fg(model.theme.accent.c600)
                 .add_modifier(Modifier::BOLD),
         )
         .alignment(Alignment::Center)
@@ -19,7 +19,7 @@ pub fn render(modal: &mut AppState, frame: &mut Frame, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .border_type(BorderType::Double)
-                .border_style(Style::default().fg(modal.theme.accent.c600)),
+                .border_style(Style::default().fg(model.theme.accent.c600)),
         );
 
     frame.render_widget(button, area);

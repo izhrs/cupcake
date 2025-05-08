@@ -11,7 +11,7 @@ use tui_tree_widget::{TreeItem, TreeState};
 use crate::model::task::TaskStore;
 
 #[derive(Default)]
-pub struct AppState {
+pub struct Model {
     pub(crate) focused_block: FocusedBlock, // focused window
     pub(crate) progress: f32,
     pub(crate) task_store: TaskStore,
@@ -23,7 +23,7 @@ pub struct AppState {
     pub(crate) running: bool,
 }
 
-impl AppState {
+impl Model {
     pub fn new() -> Self {
         Self {
             running: true,

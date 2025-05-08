@@ -6,9 +6,9 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Padding, Paragraph},
 };
 
-use crate::model::state::AppState;
+use crate::model::state::Model;
 
-pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     let logo = Paragraph::new(
         Line::from(vec![
             Span::styled("C ", Style::default().fg(tailwind::PURPLE.c500)),

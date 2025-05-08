@@ -6,9 +6,9 @@ use ratatui::{
     widgets::{Block, Clear, Paragraph, Widget},
 };
 
-use crate::model::state::{AppState, FocusedInput};
+use crate::model::state::{Model, FocusedInput};
 
-pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     Clear.render(area, frame.buffer_mut());
 
     let block = Block::bordered()

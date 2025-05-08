@@ -7,9 +7,9 @@ use ratatui::{
 
 use tui_tree_widget::Tree;
 
-use crate::model::state::{AppState, FocusedBlock};
+use crate::model::state::{Model, FocusedBlock};
 
-pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     let widget = Tree::new(&model.menu_items)
         .expect("all item identifiers must be unique")
         .block(

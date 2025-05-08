@@ -8,14 +8,14 @@ use ratatui::{
 };
 
 use crate::{
-    model::state::{AppState, FocusedBlock, SelectedTab},
+    model::state::{Model, FocusedBlock, SelectedTab},
     view::{
         components::{action_button, add_task, logo, menu, progress_bar, scrollbar, table, tabs},
         layout::LayoutAreas,
     },
 };
 
-pub fn draw(model: &mut AppState, frame: &mut Frame) {
+pub fn draw(model: &mut Model, frame: &mut Frame) {
     let screen = Block::default().borders(Borders::NONE).style(
         Style::default()
             .fg(model.theme.primary.c500)

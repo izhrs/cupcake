@@ -5,9 +5,9 @@ use ratatui::{
     widgets::{Scrollbar, ScrollbarOrientation},
 };
 
-use crate::model::state::{AppState, SelectedTab};
+use crate::model::state::{Model, SelectedTab};
 
-pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     frame.render_stateful_widget(
         Scrollbar::default()
             .orientation(ScrollbarOrientation::VerticalRight)

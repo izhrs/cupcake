@@ -3,11 +3,11 @@ pub(crate) mod message;
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
-    model::state::{AppState, FocusedBlock, FocusedInput, InputState, SelectedTab},
+    model::state::{Model, FocusedBlock, FocusedInput, InputState, SelectedTab},
     update::message::{ContentMsg, MenuMsg, ModalMsg, Msg},
 };
 
-pub fn update(model: &mut AppState, msg: Msg) {
+pub fn update(model: &mut Model, msg: Msg) {
     match msg {
         Msg::Quit => {
             model.task_store.save().expect("failed to save tasks");

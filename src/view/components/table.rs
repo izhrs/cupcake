@@ -8,9 +8,9 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Cell, HighlightSpacing, Padding, Row, Table},
 };
 
-use crate::model::state::{AppState, FocusedBlock, SelectedTab};
+use crate::model::state::{Model, FocusedBlock, SelectedTab};
 
-pub fn render(model: &mut AppState, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     let header_style = Style::default()
         .fg(model.theme.secondary.c100)
         .bg(model.theme.secondary.c950);

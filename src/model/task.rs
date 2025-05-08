@@ -1,7 +1,9 @@
 use std::{
     collections::VecDeque,
     fs::{self, File},
+    io::{BufRead, BufReader},
     path::PathBuf,
+    process::{Command, Stdio},
 };
 
 use color_eyre::Result;
@@ -15,8 +17,8 @@ pub struct Task {
     pub(crate) name: String,
     pub(crate) source: Url,
     pub(crate) destination: PathBuf,
-    pub(crate) speed: f32,
-    pub(crate) size: f64,
+    pub(crate) speed: String,
+    pub(crate) size: String,
     pub(crate) progress: f32,
     pub(crate) eta: String,
     pub(crate) status: TaskStatus,
@@ -56,6 +58,42 @@ pub struct TaskState {
     pub(crate) scroll_state: ScrollbarState,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+struct DownloadProgress {
+    progress: f64,
+    size: String,
+    speed: String,
+    eta: String,
+}
+
+impl DownloadProgress {
+    fn from_str(value: &str) -> Option<Self> {
+        if !value.starts_with("[CUPCAKE]") {
+            return None;
+        }
+
+        let parts: Vec<&str> = value[10..].trim().split_whitespace().collect();
+
+        if parts.len() >= 5 {
+            // Parse percentage (remove % character)
+            let progress = parts[0].trim_end_matches('%').parse::<f64>().ok()?;
+
+            // Get size and speed as strings
+            let size = parts[1].to_string();
+            let speed = parts[2].to_string();
+            let eta = parts[4].to_string();
+
+            return Some(Self {
+                progress,
+                size,
+                speed,
+                eta,
+            });
+        }
+        None
+    }
+}
+
 impl TaskState {
     pub fn default() -> Self {
         Self {
@@ -64,6 +102,35 @@ impl TaskState {
             table_state: TableState::default(),
             scroll_state: ScrollbarState::default(),
         }
+    }
+
+    pub fn add_task(&mut self, task: Task) {
+        self.db.push_front(task.clone());
+        self.tasks.push_front(task);
+    }
+
+    pub fn extract_metadata(source: &str) -> Result<Task> {
+        let mut cmd = Command::new("yt-dlp")
+            .arg("--no-warnings")
+            .arg("--newline")
+            .arg("--progress-template")
+            .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
+            .arg(source)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        let stdout = cmd.stdout.take().expect("Failed to capture stdout");
+        let reader = BufReader::new(stdout);
+
+        for line in reader.lines() {
+            let line = line?;
+
+            if let Some(p) = DownloadProgress::from_str(line.as_str()) {
+                println!("{p:?}")
+            }
+        }
+        todo!()
     }
 
     pub fn next_row(&mut self) {

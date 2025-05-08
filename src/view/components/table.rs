@@ -8,7 +8,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Cell, HighlightSpacing, Padding, Row, Table},
 };
 
-use crate::model::state::{Model, FocusedBlock, SelectedTab};
+use crate::model::state::{FocusedBlock, Model, SelectedTab};
 
 pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     let header_style = Style::default()
@@ -45,8 +45,8 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
 
         let item = [
             Text::from(data.name.to_string()),
-            Text::from(format!("{:.2} MB/s", data.speed)),
-            Text::from(format!("{:.0} MB", data.size)),
+            Text::from(data.speed.clone()),
+            Text::from(data.size.clone()),
             Text::from(format!("{:.0} %", data.progress)),
             Text::from(data.eta.clone()),
             Text::from(data.status.to_string()),

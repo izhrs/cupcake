@@ -4,18 +4,23 @@ use std::{
     io::{BufRead, BufReader},
     path::PathBuf,
     process::{Command, Stdio},
+    sync::{
+        Arc, Mutex,
+        mpsc::{self, Receiver, Sender},
+    },
+    thread,
 };
 
-use color_eyre::Result;
+use color_eyre::{Result, eyre::Ok};
 use dirs;
 use ratatui::widgets::{ScrollbarState, TableState};
 use serde::{Deserialize, Serialize};
-use url::Url;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Task {
+    pub(crate) id: usize,
     pub(crate) name: String,
-    pub(crate) source: Url,
+    pub(crate) source: String,
     pub(crate) destination: PathBuf,
     pub(crate) speed: String,
     pub(crate) size: String,
@@ -24,11 +29,20 @@ pub struct Task {
     pub(crate) status: TaskStatus,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+impl Task {
+    fn update(&mut self, speed: String, progress: f32, eta: String) {
+        self.progress = progress;
+        self.eta = eta;
+        self.speed = speed;
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum TaskStatus {
     Running,
     Paused,
+    #[default]
     Queued,
     Finished,
     Failed,
@@ -51,7 +65,7 @@ impl std::fmt::Display for TaskStatus {
 pub struct TaskState {
     db: VecDeque<Task>,
     #[serde(skip)]
-    pub(crate) tasks: VecDeque<Task>,
+    pub(crate) tasks: Arc<Mutex<VecDeque<Task>>>,
     #[serde(skip)]
     pub(crate) table_state: TableState,
     #[serde(skip)]
@@ -59,57 +73,137 @@ pub struct TaskState {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
-struct DownloadProgress {
-    progress: f64,
+struct TaskProgress {
+    id: usize,
+    progress: f32,
     size: String,
     speed: String,
     eta: String,
-}
-
-impl DownloadProgress {
-    fn from_str(value: &str) -> Option<Self> {
-        if !value.starts_with("[CUPCAKE]") {
-            return None;
-        }
-
-        let parts: Vec<&str> = value[10..].trim().split_whitespace().collect();
-
-        if parts.len() >= 5 {
-            // Parse percentage (remove % character)
-            let progress = parts[0].trim_end_matches('%').parse::<f64>().ok()?;
-
-            // Get size and speed as strings
-            let size = parts[1].to_string();
-            let speed = parts[2].to_string();
-            let eta = parts[4].to_string();
-
-            return Some(Self {
-                progress,
-                size,
-                speed,
-                eta,
-            });
-        }
-        None
-    }
 }
 
 impl TaskState {
     pub fn default() -> Self {
         Self {
             db: VecDeque::new(),
-            tasks: VecDeque::new(),
+            tasks: Arc::new(Mutex::new(VecDeque::new())),
             table_state: TableState::default(),
             scroll_state: ScrollbarState::default(),
         }
     }
 
-    pub fn add_task(&mut self, task: Task) {
+    pub fn add_task(&mut self, mut task: Task) -> Result<()> {
+        let id = self.db.len();
+
+        task.id = id;
+        task.status = TaskStatus::Running;
+
+        let (tx, rx): (Sender<TaskProgress>, Receiver<TaskProgress>) = mpsc::channel();
+        let tasks = Arc::clone(&self.tasks);
+
         self.db.push_front(task.clone());
-        self.tasks.push_front(task);
+
+        {
+            let mut tasks_lock = tasks.lock().unwrap();
+            tasks_lock.push_front(task.clone());
+        }
+
+        // Spawn the download task
+        let source = task.source.clone();
+        let destination = task.destination.clone();
+
+        thread::spawn(move || {
+            if let Err(e) = Self::download_task(id, source, destination, tx) {
+                eprintln!("Download task failed: {e}");
+            }
+        });
+
+        // Monitor the receiver in a separate thread
+        let tasks = self.tasks.clone();
+        thread::spawn(move || {
+            for progress in rx {
+                let mut tasks_lock = tasks.lock().unwrap();
+                if let Some(task) = tasks_lock.iter_mut().find(|t| t.id == progress.id) {
+                    // task.progress = progress.progress;
+                    // task.speed = progress.speed;
+                    // task.size = progress.size;
+                    // task.eta = progress.eta;
+                    task.update(progress.speed, progress.progress, progress.eta);
+                }
+            }
+        });
+
+        Ok(())
     }
 
-    pub fn extract_metadata(source: &str) -> Result<Task> {
+    fn download_task(
+        id: usize,
+        source: String,
+        destination: PathBuf,
+        tx: Sender<TaskProgress>,
+    ) -> Result<()> {
+        let mut cmd = Command::new("yt-dlp")
+            .arg("--no-warnings")
+            .arg("--newline")
+            .arg("--progress-template")
+            .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
+            // .arg("-o")
+            // .arg(destination.to_str().unwrap())
+            .arg(source.as_str())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        let stdout = cmd.stdout.take().expect("Failed to capture stdout");
+        let reader = BufReader::new(stdout);
+
+        for line in reader.lines() {
+            let line = line?;
+            if let Some(progress) = Self::parse_progress(id, &line) {
+                tx.send(progress)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn parse_progress(id: usize, line: &str) -> Option<TaskProgress> {
+        if !line.starts_with("[CUPCAKE]") {
+            return None;
+        }
+
+        let parts: Vec<&str> = line[10..].trim().split_whitespace().collect();
+        if parts.len() < 5 {
+            return None;
+        }
+
+        let progress = parts[0].trim_end_matches('%').parse::<f32>().ok()?;
+        let size = parts[1].to_string();
+        let speed = parts[2].to_string();
+        let eta = parts[4].to_string();
+
+        Some(TaskProgress {
+            id,
+            progress,
+            size,
+            speed,
+            eta,
+        })
+    }
+
+    pub fn extract_data(source: &str, destination: PathBuf) -> Result<Task> {
+        let name = Command::new("yt-dlp")
+            .arg("--no-warnings")
+            .arg("--print")
+            .arg("filename")
+            .arg(source)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?
+            .wait_with_output()?
+            .stdout;
+
+        let name = String::from_utf8(name).unwrap();
+
         let mut cmd = Command::new("yt-dlp")
             .arg("--no-warnings")
             .arg("--newline")
@@ -126,17 +220,32 @@ impl TaskState {
         for line in reader.lines() {
             let line = line?;
 
-            if let Some(p) = DownloadProgress::from_str(line.as_str()) {
-                println!("{p:?}")
+            if line.starts_with("[CUPCAKE]") {
+                let parts: Vec<&str> = line[10..].trim().split_whitespace().collect();
+
+                if parts.len() >= 5 {
+                    let size = parts[1].to_string();
+                    return Ok(Task {
+                        name: name.clone(),
+                        size,
+                        source: source.to_string(),
+                        destination: destination.join(name),
+                        eta: "N/A".to_string(),
+                        ..Default::default()
+                    });
+                }
             }
         }
-        todo!()
+        Err(color_eyre::eyre::eyre!("Failed to extract data"))
     }
 
     pub fn next_row(&mut self) {
+        let tasks = self.tasks.lock().unwrap();
+        let len = tasks.len();
+
         let i = match self.table_state.selected() {
             Some(i) => {
-                if i >= self.tasks.len() - 1 {
+                if i >= len - 1 {
                     0
                 } else {
                     i + 1
@@ -144,21 +253,26 @@ impl TaskState {
             }
             None => 0,
         };
+
         self.table_state.select(Some(i));
         self.scroll_state = self.scroll_state.position(i * 3);
     }
 
     pub fn previous_row(&mut self) {
+        let tasks = self.tasks.lock().unwrap();
+        let len = tasks.len();
+
         let i = match self.table_state.selected() {
             Some(i) => {
                 if i == 0 {
-                    self.tasks.len() - 1
+                    len - 1
                 } else {
                     i - 1
                 }
             }
             None => 0,
         };
+
         self.table_state.select(Some(i));
         self.scroll_state = self.scroll_state.position(i * 3);
     }

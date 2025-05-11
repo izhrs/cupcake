@@ -1,9 +1,14 @@
 pub(crate) mod message;
 
+use std::path::PathBuf;
+
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
-    model::state::{Model, FocusedBlock, FocusedInput, InputState, SelectedTab},
+    model::{
+        state::{FocusedBlock, FocusedInput, InputState, Model, SelectedTab},
+        task::TaskState,
+    },
     update::message::{ContentMsg, MenuMsg, ModalMsg, Msg},
 };
 
@@ -96,7 +101,19 @@ pub fn update(model: &mut Model, msg: Msg) {
                     model.input_state.destination.handle_event(&e);
                 }
             },
-            ModalMsg::AddTask => {}
+            ModalMsg::AddTask => match model.selected_tab {
+                SelectedTab::Single => {
+                    if let Ok(task) = TaskState::extract_data(
+                        model.input_state.source.value(),
+                        PathBuf::from(model.input_state.destination.value()),
+                    ) {
+                        model.task_store.single.add_task(task).unwrap();
+                        model.focused_block = FocusedBlock::Content;
+                        model.input_state = InputState::new();
+                    }
+                }
+                _ => {}
+            },
             ModalMsg::Close => {
                 model.input_state = InputState::new(); // clear the contents
                 model.focused_block = FocusedBlock::Content

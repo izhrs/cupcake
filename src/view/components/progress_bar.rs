@@ -13,7 +13,7 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
+                .border_type(BorderType::Plain)
                 .title(Line::from(vec![
                     Span::from("[ "),
                     Span::styled("PROGRESS", Style::default().fg(model.theme.primary)),

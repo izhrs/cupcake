@@ -21,12 +21,16 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect, active_panel: &A
                     ActivePanel::Menu => model.theme.border_active,
                     _ => model.theme.border,
                 }))
-                .padding(Padding::symmetric(2, 1)),
+                .padding(Padding::symmetric(1, 1)),
         )
+        .style(Style::default().fg(model.theme.forground))
+        .node_open_symbol("  ")
+        .node_closed_symbol("  ")
+        .node_no_children_symbol(" ")
         .highlight_style(
             Style::new()
-                .fg(model.theme.muted_forground)
-                .bg(model.theme.muted)
+                .fg(model.theme.primary_forground)
+                .bg(model.theme.primary)
                 .add_modifier(Modifier::BOLD),
         )
         .highlight_symbol("");

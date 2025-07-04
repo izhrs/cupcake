@@ -8,12 +8,12 @@ use std::{
 };
 
 use color_eyre::{Result, eyre::Ok};
-use dirs;
 use ratatui::widgets::{ScrollbarState, TableState};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Task {
+    #[serde(skip)]
     pub(crate) id: usize,
     pub(crate) name: String,
     pub(crate) source: String,
@@ -237,6 +237,7 @@ impl TaskState {
     ///
     /// coming from `tui_tree_widget::TreeState.selected()`
     /// All the &str are Tree identifiers
+    // TODO: fuck this garbage, right now i just want it to work
     pub(crate) fn apply_menu_filter(&mut self, selected_menu_item: Vec<&str>) {
         match selected_menu_item.len() {
             1 => match selected_menu_item[0] {

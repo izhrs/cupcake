@@ -1,4 +1,3 @@
-// TODO: change the colors according to the new implementation of theme
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
@@ -16,17 +15,18 @@ pub fn render(
     active_panel: &ActivePanel,
     active_tab: &ActiveTab,
 ) {
-    let header_style = Style::default()
-        .fg(model.theme.forground)
-        .bg(model.theme.secondary.c950);
+    let header_style = Style::default().fg(model.theme.success);
+
+    // .bg(model.theme.);
+
     let selected_row_style = Style::default()
         .add_modifier(Modifier::REVERSED)
-        .fg(model.theme.secondary.c800)
-        .bg(model.theme.secondary.c100);
-    let selected_col_style = Style::default().fg(model.theme.secondary.c600);
+        .fg(model.theme.primary)
+        .bg(model.theme.primary_forground);
+    let selected_col_style = Style::default().fg(model.theme.primary);
     let selected_cell_style = Style::default()
         .add_modifier(Modifier::REVERSED)
-        .fg(model.theme.secondary.c800);
+        .fg(model.theme.primary);
 
     let header = ["Name", "Speed", "Size", "Progress", "ETA", "Status"]
         .into_iter()
@@ -43,10 +43,10 @@ pub fn render(
     };
 
     let rows = tasks.iter().enumerate().map(|(i, data)| {
-        let color = match i % 2 {
-            0 => model.theme.primary.c900,
-            _ => model.theme.primary.c950,
-        };
+        // let color = match i % 2 {
+        //     0 => model.theme.muted,
+        //     _ => model.theme.muted,
+        // };
 
         let item = [
             Text::from(data.name.to_string()),
@@ -57,9 +57,9 @@ pub fn render(
             Text::from(data.status.to_string()),
         ];
         item.into_iter()
-            .map(|content| Cell::from(Text::from(format!("\n{}\n", content))))
+            .map(|content| Cell::from(Text::from(format!("\n{content}\n"))))
             .collect::<Row>()
-            .style(Style::new().fg(model.theme.primary.c100).bg(color))
+            .style(Style::new().fg(model.theme.forground))
             .height(3)
     });
 
@@ -82,13 +82,13 @@ pub fn render(
                 Span::from("[ "),
                 Span::styled(
                     format!("{} TASKS", active_tab.to_string().to_uppercase()),
-                    Style::default().fg(model.theme.secondary.c500),
+                    Style::default().fg(model.theme.primary),
                 ),
                 Span::from(" ]"),
             ]))
             .border_style(Style::default().fg(match active_panel {
-                ActivePanel::Content => model.theme.secondary.c800,
-                _ => model.theme.secondary.c950,
+                ActivePanel::Content => model.theme.border_active,
+                _ => model.theme.border,
             }))
             .padding(Padding::new(0, 0, 1, 0)),
     )

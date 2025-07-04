@@ -1,7 +1,7 @@
 use std::sync::{Arc, atomic::AtomicBool};
 
 use ratatui::{
-    style::{Modifier, Style, palette::tailwind},
+    style::{Modifier, Style},
     text::Text,
 };
 
@@ -41,6 +41,7 @@ impl Default for Model {
     }
 }
 
+// TODO: clean this menu_items dogshit; refactor to use a more structured approach
 impl Model {
     pub fn new(message_tx: UnboundedSender<Message>) -> Self {
         Self {
@@ -48,11 +49,8 @@ impl Model {
             menu_items: vec![
                 TreeItem::new(
                     "all",
-                    Text::from("ALL DOWNLOADS").style(
-                        Style::default()
-                            .fg(tailwind::NEUTRAL.c400)
-                            .add_modifier(Modifier::BOLD),
-                    ),
+                    Text::from("ALL DOWNLOADS")
+                        .style(Style::default().add_modifier(Modifier::BOLD)),
                     vec![
                         TreeItem::new_leaf("all-music", "󰎆 Music"),
                         TreeItem::new_leaf("all-vids", " Videos"),
@@ -65,11 +63,7 @@ impl Model {
                 .expect("all item identifiers must be unique"),
                 TreeItem::new(
                     "unfinished",
-                    Text::from("UNFINISHED").style(
-                        Style::default()
-                            .fg(tailwind::NEUTRAL.c400)
-                            .add_modifier(Modifier::BOLD),
-                    ),
+                    Text::from("UNFINISHED").style(Style::default().add_modifier(Modifier::BOLD)),
                     vec![
                         TreeItem::new_leaf("unfinished-music", "󰎆 Music"),
                         TreeItem::new_leaf("unfinished-vids", " Videos"),
@@ -82,11 +76,7 @@ impl Model {
                 .expect("all item identifiers must be unique"),
                 TreeItem::new(
                     "finished",
-                    Text::from("FINISHED").style(
-                        Style::default()
-                            .fg(tailwind::NEUTRAL.c400)
-                            .add_modifier(Modifier::BOLD),
-                    ),
+                    Text::from("FINISHED").style(Style::default().add_modifier(Modifier::BOLD)),
                     vec![
                         TreeItem::new_leaf("finished-music", "󰎆 Music"),
                         TreeItem::new_leaf("finished-vids", " Videos"),
@@ -99,11 +89,7 @@ impl Model {
                 .expect("all item identifiers must be unique"),
                 TreeItem::new(
                     "failed",
-                    Text::from("FAILED").style(
-                        Style::default()
-                            .fg(tailwind::NEUTRAL.c400)
-                            .add_modifier(Modifier::BOLD),
-                    ),
+                    Text::from("FAILED").style(Style::default().add_modifier(Modifier::BOLD)),
                     vec![
                         TreeItem::new_leaf("failed-rec", "Recoverable"),
                         TreeItem::new_leaf("failed-unr", "Unrecoverable"),

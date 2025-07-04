@@ -2,6 +2,7 @@
 
 use ratatui::style::Color;
 
+// TODO: make propeties more descriptive instead of using shadcn like names
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Theme {
     pub background: Option<Color>,
@@ -28,7 +29,7 @@ pub struct Theme {
 
 impl Default for Theme {
     fn default() -> Self {
-        Self::catppuccin_mocha()
+        Self::catppuccin_mocha().transparent()
     }
 }
 
@@ -44,7 +45,7 @@ impl Theme {
             background: Some(Color::from_u32(0x1e1e2e)),
             forground: Color::from_u32(0xcdd6f4),
 
-            border: Color::from_u32(0x313244),
+            border: Color::from_u32(0x6c7086),
             border_active: Color::from_u32(0xcba6f7),
 
             primary: Color::from_u32(0xcba6f7),

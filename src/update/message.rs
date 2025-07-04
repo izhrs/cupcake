@@ -65,18 +65,20 @@ impl Message {
 
             match active_panel {
                 ActivePanel::Content => match key.code {
-                    KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    KeyCode::Left | KeyCode::Char('h')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                    {
                         Some(Message::FocusMenu)
                     }
-                    KeyCode::Tab => Some(Message::SwitchNextTab),
-                    KeyCode::BackTab => Some(Message::SwitchPreviousTab),
-                    KeyCode::Up => match active_tab {
+                    KeyCode::Tab | KeyCode::Char('L') => Some(Message::SwitchNextTab),
+                    KeyCode::BackTab | KeyCode::Char('H') => Some(Message::SwitchPreviousTab),
+                    KeyCode::Up | KeyCode::Char('k') => match active_tab {
                         ActiveTab::Single => Some(Message::SelectPreviousRowSingle),
                         ActiveTab::Batch => Some(Message::SelectPreviousRowBatch),
                         ActiveTab::Playlist => Some(Message::SelectPreviousRowPlaylist),
                         _ => None,
                     },
-                    KeyCode::Down => match active_tab {
+                    KeyCode::Down | KeyCode::Char('j') => match active_tab {
                         ActiveTab::Single => Some(Message::SelectNextRowSingle),
                         ActiveTab::Batch => Some(Message::SelectNextRowBatch),
                         ActiveTab::Playlist => Some(Message::SelectNextRowPlaylist),
@@ -88,7 +90,9 @@ impl Message {
                 },
 
                 ActivePanel::Menu => match key.code {
-                    KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    KeyCode::Right | KeyCode::Char('l')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                    {
                         Some(Message::FocusContent)
                     }
                     KeyCode::Enter => match active_tab {
@@ -98,10 +102,10 @@ impl Message {
                         _ => None,
                     },
                     KeyCode::Char(' ') => Some(Message::ToggleSelected),
-                    KeyCode::Left => Some(Message::CollapseMenuItem),
-                    KeyCode::Right => Some(Message::ExpandMenuItem),
-                    KeyCode::Down => Some(Message::SelectNextMenuItem),
-                    KeyCode::Up => Some(Message::SelectPrevMenuItem),
+                    KeyCode::Left | KeyCode::Char('h') => Some(Message::CollapseMenuItem),
+                    KeyCode::Right | KeyCode::Char('l') => Some(Message::ExpandMenuItem),
+                    KeyCode::Down | KeyCode::Char('j') => Some(Message::SelectNextMenuItem),
+                    KeyCode::Up | KeyCode::Char('k') => Some(Message::SelectPrevMenuItem),
                     KeyCode::Home => Some(Message::SelectFirstMenuItem),
                     KeyCode::End => Some(Message::SelectLastMenuItem),
                     _ => None,

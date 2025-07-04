@@ -1,25 +1,24 @@
-use ratatui::crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
+use crate::model::state::{ActivePanel, ActiveTab};
+use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
 
-use crate::model::state::FocusedBlock;
-
-pub enum Msg {
+#[derive(Debug, Clone)]
+pub enum Message {
     Quit,
-    Content(ContentMsg),
-    Menu(MenuMsg),
-    Modal(ModalMsg),
-}
 
-pub enum ContentMsg {
+    // Content actions
     FocusMenu,
     SwitchNextTab,
     SwitchPreviousTab,
-    SelectNextRow,
-    SelectPreviousRow,
+    SelectNextRowSingle,
+    SelectNextRowBatch,
+    SelectNextRowPlaylist,
+    SelectPreviousRowSingle,
+    SelectPreviousRowBatch,
+    SelectPreviousRowPlaylist,
     ProgressUp,
     ProgressDown,
-}
 
-pub enum MenuMsg {
+    // Menu actions
     FocusContent,
     ToggleSelected,
     CollapseMenuItem,
@@ -28,19 +27,24 @@ pub enum MenuMsg {
     SelectNextMenuItem,
     SelectFirstMenuItem,
     SelectLastMenuItem,
-    ApplyMenuFilter,
-}
+    ApplyMenuFilterSingle,
+    ApplyMenuFilterBatch,
+    ApplyMenuFilterPlaylist,
 
-pub enum ModalMsg {
+    // Modal actions
     OpenAddTaskModal,
     ToggleFocusedInput,
     HandleInputEvent(Event),
-    AddTask,
-    Close,
+    AddTaskSingle,
+    CloseModal,
 }
 
-impl Msg {
-    pub fn from_event(event: Event, focused: &FocusedBlock) -> Option<Self> {
+impl Message {
+    pub fn from_event(
+        event: Event,
+        active_panel: &ActivePanel,
+        active_tab: &ActiveTab,
+    ) -> Option<Self> {
         if let Event::Key(key) = event {
             if key.kind != KeyEventKind::Press {
                 return None;
@@ -48,55 +52,71 @@ impl Msg {
 
             match key.code {
                 KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    return Some(Msg::Quit);
+                    return Some(Message::Quit);
                 }
                 KeyCode::Char('q') => {
-                    return Some(Msg::Quit);
+                    return Some(Message::Quit);
                 }
-
                 KeyCode::Char('n') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    return Some(Msg::Modal(ModalMsg::OpenAddTaskModal));
+                    return Some(Message::OpenAddTaskModal);
                 }
                 _ => {}
             }
 
-            match focused {
-                FocusedBlock::Content => match key.code {
+            match active_panel {
+                ActivePanel::Content => match key.code {
                     KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        Some(Msg::Content(ContentMsg::FocusMenu))
+                        Some(Message::FocusMenu)
                     }
-                    KeyCode::Tab => Some(Msg::Content(ContentMsg::SwitchNextTab)),
-                    KeyCode::BackTab => Some(Msg::Content(ContentMsg::SwitchPreviousTab)),
-                    KeyCode::Up => Some(Msg::Content(ContentMsg::SelectPreviousRow)),
-                    KeyCode::Down => Some(Msg::Content(ContentMsg::SelectNextRow)),
-                    KeyCode::Right => Some(Msg::Content(ContentMsg::ProgressUp)),
-                    KeyCode::Left => Some(Msg::Content(ContentMsg::ProgressDown)),
+                    KeyCode::Tab => Some(Message::SwitchNextTab),
+                    KeyCode::BackTab => Some(Message::SwitchPreviousTab),
+                    KeyCode::Up => match active_tab {
+                        ActiveTab::Single => Some(Message::SelectPreviousRowSingle),
+                        ActiveTab::Batch => Some(Message::SelectPreviousRowBatch),
+                        ActiveTab::Playlist => Some(Message::SelectPreviousRowPlaylist),
+                        _ => None,
+                    },
+                    KeyCode::Down => match active_tab {
+                        ActiveTab::Single => Some(Message::SelectNextRowSingle),
+                        ActiveTab::Batch => Some(Message::SelectNextRowBatch),
+                        ActiveTab::Playlist => Some(Message::SelectNextRowPlaylist),
+                        _ => None,
+                    },
+                    KeyCode::Right => Some(Message::ProgressUp),
+                    KeyCode::Left => Some(Message::ProgressDown),
                     _ => None,
                 },
 
-                FocusedBlock::Menu => match key.code {
+                ActivePanel::Menu => match key.code {
                     KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        Some(Msg::Menu(MenuMsg::FocusContent))
+                        Some(Message::FocusContent)
                     }
-                    KeyCode::Enter => Some(Msg::Menu(MenuMsg::ApplyMenuFilter)),
-                    KeyCode::Char(' ') => Some(Msg::Menu(MenuMsg::ToggleSelected)),
-                    KeyCode::Left => Some(Msg::Menu(MenuMsg::CollapseMenuItem)),
-                    KeyCode::Right => Some(Msg::Menu(MenuMsg::ExpandMenuItem)),
-                    KeyCode::Down => Some(Msg::Menu(MenuMsg::SelectNextMenuItem)),
-                    KeyCode::Up => Some(Msg::Menu(MenuMsg::SelectPrevMenuItem)),
-                    KeyCode::Home => Some(Msg::Menu(MenuMsg::SelectFirstMenuItem)),
-                    KeyCode::End => Some(Msg::Menu(MenuMsg::SelectLastMenuItem)),
+                    KeyCode::Enter => match active_tab {
+                        ActiveTab::Single => Some(Message::ApplyMenuFilterSingle),
+                        ActiveTab::Batch => Some(Message::ApplyMenuFilterBatch),
+                        ActiveTab::Playlist => Some(Message::ApplyMenuFilterPlaylist),
+                        _ => None,
+                    },
+                    KeyCode::Char(' ') => Some(Message::ToggleSelected),
+                    KeyCode::Left => Some(Message::CollapseMenuItem),
+                    KeyCode::Right => Some(Message::ExpandMenuItem),
+                    KeyCode::Down => Some(Message::SelectNextMenuItem),
+                    KeyCode::Up => Some(Message::SelectPrevMenuItem),
+                    KeyCode::Home => Some(Message::SelectFirstMenuItem),
+                    KeyCode::End => Some(Message::SelectLastMenuItem),
                     _ => None,
                 },
 
-                FocusedBlock::Modal => match key.code {
-                    KeyCode::Esc => Some(Msg::Modal(ModalMsg::Close)),
-                    KeyCode::Enter => Some(Msg::Modal(ModalMsg::AddTask)),
+                ActivePanel::Modal => match key.code {
+                    KeyCode::Esc => Some(Message::CloseModal),
+                    KeyCode::Enter => match active_tab {
+                        ActiveTab::Single => Some(Message::AddTaskSingle),
+                        _ => None,
+                    },
                     KeyCode::Up | KeyCode::Down | KeyCode::Tab | KeyCode::BackTab => {
-                        Some(Msg::Modal(ModalMsg::ToggleFocusedInput))
+                        Some(Message::ToggleFocusedInput)
                     }
-
-                    _ => Some(Msg::Modal(ModalMsg::HandleInputEvent(event))),
+                    _ => Some(Message::HandleInputEvent(event)),
                 },
             }
         } else {

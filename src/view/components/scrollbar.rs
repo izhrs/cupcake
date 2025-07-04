@@ -5,9 +5,9 @@ use ratatui::{
     widgets::{Scrollbar, ScrollbarOrientation},
 };
 
-use crate::model::state::{Model, SelectedTab};
+use crate::model::state::{ActiveTab, Model};
 
-pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut Model, frame: &mut Frame, area: Rect, active_tab: &ActiveTab) {
     frame.render_stateful_widget(
         Scrollbar::default()
             .orientation(ScrollbarOrientation::VerticalRight)
@@ -19,10 +19,10 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
             vertical: 1,
             horizontal: 0,
         }),
-        match model.selected_tab {
-            SelectedTab::Single => &mut model.task_store.single.scroll_state,
-            SelectedTab::Batch => &mut model.task_store.batch.scroll_state,
-            SelectedTab::Playlist => &mut model.task_store.playlist.scroll_state,
+        match active_tab {
+            ActiveTab::Single => &mut model.task_store.single.scroll_state,
+            ActiveTab::Batch => &mut model.task_store.batch.scroll_state,
+            ActiveTab::Playlist => &mut model.task_store.playlist.scroll_state,
             _ => &mut model.task_store.single.scroll_state,
         },
     )

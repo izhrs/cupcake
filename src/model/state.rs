@@ -1,39 +1,50 @@
-use dirs;
+use std::sync::{Arc, atomic::AtomicBool};
 
 use ratatui::{
     style::{Modifier, Style, palette::tailwind},
     text::Text,
 };
 
+use tokio::sync::{RwLock, mpsc::UnboundedSender};
 use tui_input::Input;
 use tui_tree_widget::{TreeItem, TreeState};
 
-use crate::model::task::TaskStore;
+use crate::{model::task::TaskStore, update::message::Message};
 
-#[derive(Default)]
 pub struct Model {
-    pub(crate) focused_block: FocusedBlock, // focused window
+    pub message_tx: Option<UnboundedSender<Message>>,
+    pub(crate) active_panel: Arc<RwLock<ActivePanel>>, // focused window
     pub(crate) progress: f32,
     pub(crate) task_store: TaskStore,
-    pub(crate) selected_tab: SelectedTab,
+    pub(crate) active_tab: Arc<RwLock<ActiveTab>>,
     pub(crate) menu_state: TreeState<&'static str>,
     pub(crate) menu_items: Vec<TreeItem<'static, &'static str>>,
     pub(crate) input_state: InputState,
     pub(crate) theme: Theme,
-    pub(crate) running: bool,
+    pub(crate) running: Arc<AtomicBool>,
 }
 
-impl Model {
-    pub fn new() -> Self {
+impl Default for Model {
+    fn default() -> Self {
         Self {
-            running: true,
-            focused_block: FocusedBlock::default(),
+            message_tx: None,
+            running: Arc::new(AtomicBool::new(true)),
+            active_panel: Arc::new(RwLock::new(ActivePanel::default())),
+            active_tab: Arc::new(RwLock::new(ActiveTab::default())),
             progress: 0.0,
             task_store: TaskStore::new().load().unwrap_or(TaskStore::default()),
-            selected_tab: SelectedTab::default(),
             menu_state: TreeState::default(),
             theme: Theme::default(),
             input_state: InputState::default(),
+            menu_items: Default::default(),
+        }
+    }
+}
+
+impl Model {
+    pub fn new(message_tx: UnboundedSender<Message>) -> Self {
+        Self {
+            message_tx: Some(message_tx),
             menu_items: vec![
                 TreeItem::new(
                     "all",
@@ -100,12 +111,44 @@ impl Model {
                 )
                 .expect("all item identifiers must be unique"),
             ],
+            ..Default::default()
         }
+    }
+
+    pub async fn previous_tab(&mut self) {
+        let mut tab = self.active_tab.write().await;
+        *tab = tab.previous();
+    }
+
+    pub async fn next_tab(&mut self) {
+        let mut tab = self.active_tab.write().await;
+        *tab = tab.next();
+    }
+
+    pub async fn focus_content(&mut self) {
+        let mut active_panel = self.active_panel.write().await;
+        *active_panel = ActivePanel::Content;
+    }
+
+    pub async fn focus_menu(&mut self) {
+        let mut active_panel = self.active_panel.write().await;
+        *active_panel = ActivePanel::Menu;
+    }
+
+    pub async fn focus_modal(&mut self) {
+        let mut active_panel = self.active_panel.write().await;
+        *active_panel = ActivePanel::Modal;
+    }
+
+    pub async fn close_modal(&mut self) {
+        self.input_state = InputState::new();
+        let mut active_panel = self.active_panel.write().await;
+        *active_panel = ActivePanel::Content;
     }
 }
 
 #[derive(Clone, Copy, Default, Debug)]
-pub(crate) enum FocusedBlock {
+pub(crate) enum ActivePanel {
     #[default]
     Content,
     Menu,
@@ -113,7 +156,7 @@ pub(crate) enum FocusedBlock {
 }
 
 #[derive(Default, Clone, Copy, Debug)]
-pub(crate) enum SelectedTab {
+pub(crate) enum ActiveTab {
     #[default]
     Single,
     Batch,
@@ -122,30 +165,30 @@ pub(crate) enum SelectedTab {
     About,
 }
 
-impl std::fmt::Display for SelectedTab {
+impl std::fmt::Display for ActiveTab {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SelectedTab::Single => write!(f, "Single"),
-            SelectedTab::Batch => write!(f, "Batch"),
-            SelectedTab::Playlist => write!(f, "Playlist"),
-            SelectedTab::Settings => write!(f, "Settings"),
-            SelectedTab::About => write!(f, "About"),
+            ActiveTab::Single => write!(f, "Single"),
+            ActiveTab::Batch => write!(f, "Batch"),
+            ActiveTab::Playlist => write!(f, "Playlist"),
+            ActiveTab::Settings => write!(f, "Settings"),
+            ActiveTab::About => write!(f, "About"),
         }
     }
 }
 
-impl SelectedTab {
+impl ActiveTab {
     /// Get the previous tab, if there is no previous tab return the current tab.
     pub(crate) fn previous(self) -> Self {
         let current_index = self as usize;
         let previous_index = current_index.saturating_sub(1);
         match previous_index {
-            0 => SelectedTab::Single,
-            1 => SelectedTab::Batch,
-            2 => SelectedTab::Playlist,
-            3 => SelectedTab::Settings,
-            4 => SelectedTab::About,
-            _ => SelectedTab::Single,
+            0 => ActiveTab::Single,
+            1 => ActiveTab::Batch,
+            2 => ActiveTab::Playlist,
+            3 => ActiveTab::Settings,
+            4 => ActiveTab::About,
+            _ => ActiveTab::Single,
         }
     }
 
@@ -154,12 +197,12 @@ impl SelectedTab {
         let current_index = self as usize;
         let next_index = current_index.saturating_add(1);
         match next_index {
-            0 => SelectedTab::Single,
-            1 => SelectedTab::Batch,
-            2 => SelectedTab::Playlist,
-            3 => SelectedTab::Settings,
-            4 => SelectedTab::About,
-            _ => SelectedTab::Single,
+            0 => ActiveTab::Single,
+            1 => ActiveTab::Batch,
+            2 => ActiveTab::Playlist,
+            3 => ActiveTab::Settings,
+            4 => ActiveTab::About,
+            _ => ActiveTab::Single,
         }
     }
 }
@@ -181,7 +224,7 @@ pub struct InputState {
 impl Default for InputState {
     fn default() -> Self {
         let download_dir = dirs::download_dir()
-            .unwrap()
+            .unwrap_or("".into())
             .to_str()
             .unwrap_or("")
             .to_string();

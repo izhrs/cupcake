@@ -1,106 +1,105 @@
-pub(crate) mod message;
+pub mod message;
 
+use std::{path::PathBuf, sync::atomic::Ordering};
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
-    model::state::{Model, FocusedBlock, FocusedInput, InputState, SelectedTab},
-    update::message::{ContentMsg, MenuMsg, ModalMsg, Msg},
+    model::{
+        state::{FocusedInput, InputState, Model},
+        task::TaskState,
+    },
+    update::message::Message,
 };
 
-pub fn update(model: &mut Model, msg: Msg) {
+pub async fn update(model: &mut Model, msg: Message) {
     match msg {
-        Msg::Quit => {
+        Message::Quit => {
             model.task_store.save().expect("failed to save tasks");
-            model.running = false;
+            model.running.store(false, Ordering::Relaxed);
         }
 
-        Msg::Content(msg) => match msg {
-            ContentMsg::FocusMenu => model.focused_block = FocusedBlock::Menu,
-            ContentMsg::SwitchNextTab => model.selected_tab = model.selected_tab.next(),
-            ContentMsg::SwitchPreviousTab => model.selected_tab = model.selected_tab.previous(),
-            ContentMsg::SelectNextRow => match model.selected_tab {
-                SelectedTab::Single => model.task_store.single.next_row(),
-                SelectedTab::Batch => model.task_store.batch.next_row(),
-                SelectedTab::Playlist => model.task_store.playlist.next_row(),
-                _ => {}
-            },
-            ContentMsg::SelectPreviousRow => match model.selected_tab {
-                SelectedTab::Single => model.task_store.single.previous_row(),
-                SelectedTab::Batch => model.task_store.batch.previous_row(),
-                SelectedTab::Playlist => model.task_store.playlist.previous_row(),
-                _ => {}
-            },
-            ContentMsg::ProgressUp => {
-                if model.progress < 100.0 {
-                    model.progress += 1.0;
-                }
+        // Content
+        Message::FocusMenu => model.focus_menu().await,
+        Message::SwitchNextTab => model.next_tab().await,
+        Message::SwitchPreviousTab => model.previous_tab().await,
+        Message::SelectNextRowSingle => model.task_store.single.next_row(),
+        Message::SelectNextRowBatch => model.task_store.batch.next_row(),
+        Message::SelectNextRowPlaylist => model.task_store.playlist.next_row(),
+        Message::SelectPreviousRowSingle => model.task_store.single.previous_row(),
+        Message::SelectPreviousRowBatch => model.task_store.batch.previous_row(),
+        Message::SelectPreviousRowPlaylist => model.task_store.playlist.previous_row(),
+        Message::ProgressUp => {
+            if model.progress < 100.0 {
+                model.progress += 1.0;
             }
-            ContentMsg::ProgressDown => {
-                if model.progress > 0.0 {
-                    model.progress -= 1.0;
-                }
+        }
+        Message::ProgressDown => {
+            if model.progress > 0.0 {
+                model.progress -= 1.0;
             }
-        },
+        }
 
-        Msg::Menu(msg) => match msg {
-            MenuMsg::FocusContent => model.focused_block = FocusedBlock::Content,
-            MenuMsg::ToggleSelected => {
-                model.menu_state.toggle_selected();
-            }
-            MenuMsg::CollapseMenuItem => {
-                model.menu_state.key_left();
-            }
-            MenuMsg::ExpandMenuItem => {
-                model.menu_state.key_right();
-            }
-            MenuMsg::SelectPrevMenuItem => {
-                model.menu_state.key_up();
-            }
-            MenuMsg::SelectNextMenuItem => {
-                model.menu_state.key_down();
-            }
-            MenuMsg::SelectFirstMenuItem => {
-                model.menu_state.select_first();
-            }
-            MenuMsg::SelectLastMenuItem => {
-                model.menu_state.select_last();
-            }
-            MenuMsg::ApplyMenuFilter => match model.selected_tab {
-                SelectedTab::Single => model
-                    .task_store
-                    .single
-                    .apply_menu_filter(model.menu_state.selected().to_owned()),
-                SelectedTab::Batch => model
-                    .task_store
-                    .batch
-                    .apply_menu_filter(model.menu_state.selected().to_owned()),
-                SelectedTab::Playlist => model
-                    .task_store
-                    .playlist
-                    .apply_menu_filter(model.menu_state.selected().to_owned()),
-                _ => {}
-            },
-        },
+        // Menu
+        Message::FocusContent => model.focus_content().await,
+        Message::ToggleSelected => {
+            model.menu_state.toggle_selected();
+        }
+        Message::CollapseMenuItem => {
+            model.menu_state.key_left();
+        }
+        Message::ExpandMenuItem => {
+            model.menu_state.key_right();
+        }
+        Message::SelectPrevMenuItem => {
+            model.menu_state.key_up();
+        }
+        Message::SelectNextMenuItem => {
+            model.menu_state.key_down();
+        }
+        Message::SelectFirstMenuItem => {
+            model.menu_state.select_first();
+        }
+        Message::SelectLastMenuItem => {
+            model.menu_state.select_last();
+        }
 
-        Msg::Modal(msg) => match msg {
-            ModalMsg::OpenAddTaskModal => model.focused_block = FocusedBlock::Modal,
-            ModalMsg::ToggleFocusedInput => match model.input_state.focused {
-                FocusedInput::Destination => model.input_state.focused = FocusedInput::Source,
-                FocusedInput::Source => model.input_state.focused = FocusedInput::Destination,
-            },
-            ModalMsg::HandleInputEvent(e) => match model.input_state.focused {
-                FocusedInput::Source => {
-                    model.input_state.source.handle_event(&e);
-                }
-                FocusedInput::Destination => {
-                    model.input_state.destination.handle_event(&e);
-                }
-            },
-            ModalMsg::AddTask => {}
-            ModalMsg::Close => {
-                model.input_state = InputState::new(); // clear the contents
-                model.focused_block = FocusedBlock::Content
+        Message::ApplyMenuFilterSingle => model
+            .task_store
+            .single
+            .apply_menu_filter(model.menu_state.selected().to_owned()),
+        Message::ApplyMenuFilterBatch => model
+            .task_store
+            .batch
+            .apply_menu_filter(model.menu_state.selected().to_owned()),
+        Message::ApplyMenuFilterPlaylist => model
+            .task_store
+            .playlist
+            .apply_menu_filter(model.menu_state.selected().to_owned()),
+
+        // Modal
+        Message::OpenAddTaskModal => model.focus_modal().await,
+        Message::ToggleFocusedInput => match model.input_state.focused {
+            FocusedInput::Destination => model.input_state.focused = FocusedInput::Source,
+            FocusedInput::Source => model.input_state.focused = FocusedInput::Destination,
+        },
+        Message::HandleInputEvent(e) => match model.input_state.focused {
+            FocusedInput::Source => {
+                model.input_state.source.handle_event(&e);
+            }
+            FocusedInput::Destination => {
+                model.input_state.destination.handle_event(&e);
             }
         },
+        Message::AddTaskSingle => {
+            if let Ok(task) = TaskState::extract_data(
+                model.input_state.source.value(),
+                PathBuf::from(model.input_state.destination.value()),
+            ) {
+                model.task_store.single.add_task(task).unwrap();
+                model.focus_content().await;
+                model.input_state = InputState::new();
+            }
+        }
+        Message::CloseModal => model.close_modal().await,
     }
 }

@@ -5,11 +5,11 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Tabs},
 };
 
-use crate::model::state::Model;
+use crate::model::state::{ActiveTab, Model};
 
-pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut Model, frame: &mut Frame, area: Rect, active_tab: &ActiveTab) {
     let tabs = Tabs::new(vec!["SINGLE", "BATCH", "PLAYLIST", "SETTINGS", "ABOUT"])
-        .select(model.selected_tab as usize)
+        .select(*active_tab as usize)
         .block(
             Block::default()
                 .borders(Borders::ALL)

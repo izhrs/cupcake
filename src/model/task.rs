@@ -1,32 +1,44 @@
 use std::{
     collections::VecDeque,
     fs::{self, File},
+    io::{BufRead, BufReader},
     path::PathBuf,
+    process::{Command, Stdio},
+    sync::mpsc::Sender,
 };
 
-use color_eyre::Result;
+use color_eyre::{Result, eyre::Ok};
 use dirs;
 use ratatui::widgets::{ScrollbarState, TableState};
 use serde::{Deserialize, Serialize};
-use url::Url;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Task {
+    pub(crate) id: usize,
     pub(crate) name: String,
-    pub(crate) source: Url,
+    pub(crate) source: String,
     pub(crate) destination: PathBuf,
-    pub(crate) speed: f32,
-    pub(crate) size: f64,
+    pub(crate) speed: String,
+    pub(crate) size: String,
     pub(crate) progress: f32,
     pub(crate) eta: String,
     pub(crate) status: TaskStatus,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+impl Task {
+    fn update(&mut self, speed: String, progress: f32, eta: String) {
+        self.progress = progress;
+        self.eta = eta;
+        self.speed = speed;
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum TaskStatus {
     Running,
     Paused,
+    #[default]
     Queued,
     Finished,
     Failed,
@@ -56,6 +68,15 @@ pub struct TaskState {
     pub(crate) scroll_state: ScrollbarState,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+struct TaskProgress {
+    id: usize,
+    progress: f32,
+    size: String,
+    speed: String,
+    eta: String,
+}
+
 impl TaskState {
     pub fn default() -> Self {
         Self {
@@ -66,10 +87,120 @@ impl TaskState {
         }
     }
 
+    pub fn add_task(&mut self, mut task: Task) -> Result<()> {
+        todo!();
+    }
+
+    fn download_task(
+        id: usize,
+        source: String,
+        destination: PathBuf,
+        tx: Sender<TaskProgress>,
+    ) -> Result<()> {
+        let mut cmd = Command::new("yt-dlp")
+            .arg("--no-warnings")
+            .arg("--newline")
+            .arg("--progress-template")
+            .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
+            // .arg("-o")
+            // .arg(destination.to_str().unwrap())
+            .arg(source.as_str())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        let stdout = cmd.stdout.take().expect("Failed to capture stdout");
+        let reader = BufReader::new(stdout);
+
+        for line in reader.lines() {
+            let line = line?;
+            if let Some(progress) = Self::parse_progress(id, &line) {
+                tx.send(progress)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn parse_progress(id: usize, line: &str) -> Option<TaskProgress> {
+        if !line.starts_with("[CUPCAKE]") {
+            return None;
+        }
+
+        let parts: Vec<&str> = line[10..].trim().split_whitespace().collect();
+        if parts.len() < 5 {
+            return None;
+        }
+
+        let progress = parts[0].trim_end_matches('%').parse::<f32>().ok()?;
+        let size = parts[1].to_string();
+        let speed = parts[2].to_string();
+        let eta = parts[4].to_string();
+
+        Some(TaskProgress {
+            id,
+            progress,
+            size,
+            speed,
+            eta,
+        })
+    }
+
+    pub fn extract_data(source: &str, destination: PathBuf) -> Result<Task> {
+        let name = Command::new("yt-dlp")
+            .arg("--no-warnings")
+            .arg("--print")
+            .arg("filename")
+            .arg(source)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?
+            .wait_with_output()?
+            .stdout;
+
+        let name = String::from_utf8(name).unwrap();
+
+        let mut cmd = Command::new("yt-dlp")
+            .arg("--no-warnings")
+            .arg("--newline")
+            .arg("--progress-template")
+            .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
+            .arg(source)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        let stdout = cmd.stdout.take().expect("Failed to capture stdout");
+        let reader = BufReader::new(stdout);
+
+        for line in reader.lines() {
+            let line = line?;
+
+            if line.starts_with("[CUPCAKE]") {
+                let parts: Vec<&str> = line[10..].trim().split_whitespace().collect();
+
+                if parts.len() >= 5 {
+                    let size = parts[1].to_string();
+                    return Ok(Task {
+                        name: name.clone(),
+                        size,
+                        source: source.to_string(),
+                        destination: destination.join(name),
+                        eta: "N/A".to_string(),
+                        ..Default::default()
+                    });
+                }
+            }
+        }
+        Err(color_eyre::eyre::eyre!("Failed to extract data"))
+    }
+
     pub fn next_row(&mut self) {
+        let len = self.tasks.len();
+
         let i = match self.table_state.selected() {
             Some(i) => {
-                if i >= self.tasks.len() - 1 {
+                if i >= len - 1 {
                     0
                 } else {
                     i + 1
@@ -77,21 +208,25 @@ impl TaskState {
             }
             None => 0,
         };
+
         self.table_state.select(Some(i));
         self.scroll_state = self.scroll_state.position(i * 3);
     }
 
     pub fn previous_row(&mut self) {
+        let len = self.tasks.len();
+
         let i = match self.table_state.selected() {
             Some(i) => {
                 if i == 0 {
-                    self.tasks.len() - 1
+                    len - 1
                 } else {
                     i - 1
                 }
             }
             None => 0,
         };
+
         self.table_state.select(Some(i));
         self.scroll_state = self.scroll_state.position(i * 3);
     }

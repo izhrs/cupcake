@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
@@ -8,9 +6,15 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Cell, HighlightSpacing, Padding, Row, Table},
 };
 
-use crate::model::state::{Model, FocusedBlock, SelectedTab};
+use crate::model::state::{ActivePanel, ActiveTab, Model};
 
-pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
+pub fn render(
+    model: &mut Model,
+    frame: &mut Frame,
+    area: Rect,
+    active_panel: &ActivePanel,
+    active_tab: &ActiveTab,
+) {
     let header_style = Style::default()
         .fg(model.theme.secondary.c100)
         .bg(model.theme.secondary.c950);
@@ -30,11 +34,11 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
         .style(header_style)
         .height(1);
 
-    let tasks = match model.selected_tab {
-        SelectedTab::Single => model.task_store.single.tasks.clone(),
-        SelectedTab::Batch => model.task_store.batch.tasks.clone(),
-        SelectedTab::Playlist => model.task_store.playlist.tasks.clone(),
-        _ => VecDeque::new(),
+    let tasks = match active_tab {
+        ActiveTab::Single => model.task_store.single.tasks.clone(),
+        ActiveTab::Batch => model.task_store.batch.tasks.clone(),
+        ActiveTab::Playlist => model.task_store.playlist.tasks.clone(),
+        _ => Default::default(),
     };
 
     let rows = tasks.iter().enumerate().map(|(i, data)| {
@@ -45,8 +49,8 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
 
         let item = [
             Text::from(data.name.to_string()),
-            Text::from(format!("{:.2} MB/s", data.speed)),
-            Text::from(format!("{:.0} MB", data.size)),
+            Text::from(data.speed.clone()),
+            Text::from(data.size.clone()),
             Text::from(format!("{:.0} %", data.progress)),
             Text::from(data.eta.clone()),
             Text::from(data.status.to_string()),
@@ -76,13 +80,13 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
             .title(Line::from(vec![
                 Span::from("[ "),
                 Span::styled(
-                    format!("{} TASKS", model.selected_tab.to_string().to_uppercase()),
+                    format!("{} TASKS", active_tab.to_string().to_uppercase()),
                     Style::default().fg(model.theme.secondary.c500),
                 ),
                 Span::from(" ]"),
             ]))
-            .border_style(Style::default().fg(match model.focused_block {
-                FocusedBlock::Content => model.theme.secondary.c800,
+            .border_style(Style::default().fg(match active_panel {
+                ActivePanel::Content => model.theme.secondary.c800,
                 _ => model.theme.secondary.c950,
             }))
             .padding(Padding::new(0, 0, 1, 0)),
@@ -97,10 +101,10 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     frame.render_stateful_widget(
         t,
         area,
-        match model.selected_tab {
-            SelectedTab::Single => &mut model.task_store.single.table_state,
-            SelectedTab::Batch => &mut model.task_store.batch.table_state,
-            SelectedTab::Playlist => &mut model.task_store.playlist.table_state,
+        match active_tab {
+            ActiveTab::Single => &mut model.task_store.single.table_state,
+            ActiveTab::Batch => &mut model.task_store.batch.table_state,
+            ActiveTab::Playlist => &mut model.task_store.playlist.table_state,
             _ => &mut model.task_store.single.table_state,
         },
     );

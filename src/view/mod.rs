@@ -8,14 +8,19 @@ use ratatui::{
 };
 
 use crate::{
-    model::state::{Model, FocusedBlock, SelectedTab},
+    model::state::{ActivePanel, ActiveTab, Model},
     view::{
         components::{action_button, add_task, logo, menu, progress_bar, scrollbar, table, tabs},
         layout::LayoutAreas,
     },
 };
 
-pub fn draw(model: &mut Model, frame: &mut Frame) {
+pub fn draw(
+    model: &mut Model,
+    frame: &mut Frame,
+    active_panel: &ActivePanel,
+    active_tab: &ActiveTab,
+) {
     let screen = Block::default().borders(Borders::NONE).style(
         Style::default()
             .fg(model.theme.primary.c500)
@@ -27,29 +32,29 @@ pub fn draw(model: &mut Model, frame: &mut Frame) {
     let layout = LayoutAreas::compute(frame.area());
     action_button::render(model, frame, layout.action_button);
     logo::render(model, frame, layout.logo);
-    menu::render(model, frame, layout.menu);
-    tabs::render(model, frame, layout.tabs);
+    menu::render(model, frame, layout.menu, active_panel);
+    tabs::render(model, frame, layout.tabs, active_tab);
 
-    match model.selected_tab {
-        SelectedTab::Single => {
-            table::render(model, frame, layout.content);
+    match active_tab {
+        ActiveTab::Single => {
+            table::render(model, frame, layout.content, active_panel, active_tab);
 
             if (model.task_store.single.tasks.len() * 3) > layout.content.height as usize {
-                scrollbar::render(model, frame, layout.content);
+                scrollbar::render(model, frame, layout.content, active_tab);
             }
         }
-        SelectedTab::Batch => {
-            table::render(model, frame, layout.content);
+        ActiveTab::Batch => {
+            table::render(model, frame, layout.content, active_panel, active_tab);
 
             if (model.task_store.batch.tasks.len() * 3) > layout.content.height as usize {
-                scrollbar::render(model, frame, layout.content);
+                scrollbar::render(model, frame, layout.content, active_tab);
             }
         }
-        SelectedTab::Playlist => {
-            table::render(model, frame, layout.content);
+        ActiveTab::Playlist => {
+            table::render(model, frame, layout.content, active_panel, active_tab);
 
             if (model.task_store.playlist.tasks.len() * 3) > layout.content.height as usize {
-                scrollbar::render(model, frame, layout.content);
+                scrollbar::render(model, frame, layout.content, active_tab);
             }
         }
         _ => {}
@@ -57,8 +62,8 @@ pub fn draw(model: &mut Model, frame: &mut Frame) {
 
     progress_bar::render(model, frame, layout.progress_bar);
 
-    match model.focused_block {
-        FocusedBlock::Modal => add_task::render(model, frame, layout.modal),
+    match active_panel {
+        ActivePanel::Modal => add_task::render(model, frame, layout.modal),
         _ => {}
     }
 }

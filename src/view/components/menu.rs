@@ -7,9 +7,9 @@ use ratatui::{
 
 use tui_tree_widget::Tree;
 
-use crate::model::state::{Model, FocusedBlock};
+use crate::model::state::{ActivePanel, Model};
 
-pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
+pub fn render(model: &mut Model, frame: &mut Frame, area: Rect, active_panel: &ActivePanel) {
     let widget = Tree::new(&model.menu_items)
         .expect("all item identifiers must be unique")
         .block(
@@ -17,8 +17,8 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
                 // .title_bottom(format!("{:?}", model.menu_state.selected()))
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
-                .border_style(Style::default().fg(match model.focused_block {
-                    FocusedBlock::Menu => model.theme.secondary.c800,
+                .border_style(Style::default().fg(match active_panel {
+                    ActivePanel::Menu => model.theme.secondary.c800,
                     _ => model.theme.secondary.c950,
                 }))
                 .padding(Padding::symmetric(2, 1)),

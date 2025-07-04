@@ -14,11 +14,11 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect, active_tab: &Act
             Block::default()
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
-                .border_style(Style::default().fg(model.theme.secondary.c950)),
+                .border_style(Style::default().fg(model.theme.muted)),
         )
         .highlight_style(
             Style::default()
-                .fg(model.theme.secondary.c500)
+                .fg(model.theme.primary)
                 .add_modifier(Modifier::BOLD),
         )
         .divider("|")

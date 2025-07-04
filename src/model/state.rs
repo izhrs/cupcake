@@ -9,7 +9,7 @@ use tokio::sync::{RwLock, mpsc::UnboundedSender};
 use tui_input::Input;
 use tui_tree_widget::{TreeItem, TreeState};
 
-use crate::{model::task::TaskStore, update::message::Message};
+use crate::{model::task::TaskStore, model::theme::Theme, update::message::Message};
 
 pub struct Model {
     pub message_tx: Option<UnboundedSender<Message>>,
@@ -240,21 +240,5 @@ impl Default for InputState {
 impl InputState {
     pub fn new() -> Self {
         Self::default()
-    }
-}
-
-pub struct Theme {
-    pub(crate) primary: tailwind::Palette,
-    pub(crate) secondary: tailwind::Palette,
-    pub(crate) accent: tailwind::Palette,
-}
-
-impl Default for Theme {
-    fn default() -> Self {
-        Self {
-            primary: tailwind::NEUTRAL,
-            secondary: tailwind::PURPLE,
-            accent: tailwind::GREEN,
-        }
     }
 }

@@ -1,3 +1,4 @@
+// TODO: change the colors according to the new implementation of theme
 use ratatui::{
     Frame,
     layout::{Constraint, Rect},
@@ -16,7 +17,7 @@ pub fn render(
     active_tab: &ActiveTab,
 ) {
     let header_style = Style::default()
-        .fg(model.theme.secondary.c100)
+        .fg(model.theme.forground)
         .bg(model.theme.secondary.c950);
     let selected_row_style = Style::default()
         .add_modifier(Modifier::REVERSED)

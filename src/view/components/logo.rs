@@ -26,7 +26,7 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Double)
-            .border_style(Style::default().fg(model.theme.secondary.c950))
+            .border_style(Style::default().fg(model.theme.border_active))
             .padding(Padding::uniform(1)),
     );
 

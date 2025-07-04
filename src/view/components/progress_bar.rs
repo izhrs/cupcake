@@ -13,23 +13,18 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_type(BorderType::Plain)
+                .border_type(BorderType::Rounded)
                 .title(Line::from(vec![
                     Span::from("[ "),
-                    Span::styled("PROGRESS", Style::default().fg(model.theme.secondary.c500)),
+                    Span::styled("PROGRESS", Style::default().fg(model.theme.primary)),
                     Span::from(" ]"),
                 ]))
-                .border_style(Style::default().fg(model.theme.secondary.c950)),
+                .border_style(Style::default().fg(model.theme.border)),
         )
         .gauge_style(
             Style::default()
-                .fg(match model.progress {
-                    0.0..=25.0 => model.theme.secondary.c800,
-                    25.0..=50.0 => model.theme.secondary.c700,
-                    50.0..=75.0 => model.theme.secondary.c600,
-                    _ => model.theme.secondary.c500,
-                })
-                .bg(model.theme.secondary.c950),
+                .fg(model.theme.primary)
+                .bg(model.theme.border),
         )
         .percent(model.progress as u16);
 

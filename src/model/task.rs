@@ -234,7 +234,8 @@ impl TaskState {
     /// Filter tasks based on the selected menu item
     /// # Arguments
     /// * `selected_menu_item` - A slice of strings representing the selected menu item
-    /// coming from tui_tree_widget::TreeState.selected()
+    ///
+    /// coming from `tui_tree_widget::TreeState.selected()`
     /// All the &str are Tree identifiers
     pub(crate) fn apply_menu_filter(&mut self, selected_menu_item: Vec<&str>) {
         match selected_menu_item.len() {
@@ -511,7 +512,9 @@ impl TaskStore {
     }
 
     pub fn save(&self) -> Result<()> {
-        let path = dirs::data_local_dir().unwrap_or("".into()).join("cupcake");
+        let path = dirs::data_local_dir()
+            .unwrap_or(std::env::current_dir().unwrap())
+            .join("cupcake");
         fs::create_dir_all(path.clone())?;
         let file = File::create(path.join("tasks.json"))?;
         serde_json::to_writer_pretty(file, &self)?;

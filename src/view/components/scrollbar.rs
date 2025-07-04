@@ -14,7 +14,7 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect, active_tab: &Act
             .begin_symbol(None)
             .end_symbol(None)
             .track_symbol(None)
-            .thumb_style(Style::default().fg(model.theme.secondary.c900)),
+            .thumb_style(Style::default().fg(model.theme.primary)),
         area.inner(Margin {
             vertical: 1,
             horizontal: 0,

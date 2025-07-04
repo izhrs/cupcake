@@ -21,11 +21,17 @@ pub fn draw(
     active_panel: &ActivePanel,
     active_tab: &ActiveTab,
 ) {
-    let screen = Block::default().borders(Borders::NONE).style(
-        Style::default()
-            .fg(model.theme.primary.c500)
-            .bg(model.theme.primary.c950),
-    );
+    let screen = if let Some(color) = model.theme.background {
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(model.theme.border))
+            .style(Style::default().bg(color).fg(model.theme.forground))
+    } else {
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(model.theme.border))
+            .style(Style::default().fg(model.theme.forground))
+    };
 
     frame.render_widget(&screen, frame.area());
 
@@ -62,8 +68,7 @@ pub fn draw(
 
     progress_bar::render(model, frame, layout.progress_bar);
 
-    match active_panel {
-        ActivePanel::Modal => add_task::render(model, frame, layout.modal),
-        _ => {}
+    if let ActivePanel::Modal = active_panel {
+        add_task::render(model, frame, layout.modal);
     }
 }

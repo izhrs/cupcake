@@ -6,25 +6,22 @@ use ratatui::{
     widgets::{Block, Clear, Paragraph, Widget},
 };
 
-use crate::model::state::{Model, FocusedInput};
+use crate::model::state::{FocusedInput, Model};
 
 pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     Clear.render(area, frame.buffer_mut());
 
     let block = Block::bordered()
-        .border_style(Style::default().fg(model.theme.secondary.c700))
+        .border_style(Style::default().fg(model.theme.border_active))
         .title(
             Line::from(vec![
                 Span::from("[ "),
-                Span::styled(
-                    "ADD A NEW TASK",
-                    Style::default().fg(model.theme.secondary.c500),
-                ),
+                Span::styled("ADD A NEW TASK", Style::default().fg(model.theme.primary)),
                 Span::from(" ]"),
             ])
             .centered(),
         )
-        .style(Style::default().bg(model.theme.primary.c950));
+        .style(Style::default().bg(model.theme.muted));
 
     frame.render_widget(block, area);
 
@@ -42,8 +39,8 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
 
     let source_input = Paragraph::new(model.input_state.source.value())
         .style(Style::default().fg(match model.input_state.focused {
-            FocusedInput::Source => model.theme.primary.c400,
-            _ => model.theme.primary.c700,
+            FocusedInput::Source => model.theme.primary,
+            _ => model.theme.muted,
         }))
         .scroll((0, scroll as u16))
         .block(Block::bordered().title("[ Source URL ]"));
@@ -52,8 +49,8 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
 
     let destination_input = Paragraph::new(model.input_state.destination.value())
         .style(Style::default().fg(match model.input_state.focused {
-            FocusedInput::Destination => model.theme.primary.c400,
-            _ => model.theme.primary.c700,
+            FocusedInput::Destination => model.theme.primary,
+            _ => model.theme.muted,
         }))
         .scroll((0, scroll as u16))
         .block(Block::bordered().title("[ Download Path ]"));

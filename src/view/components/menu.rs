@@ -18,15 +18,15 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect, active_panel: &A
                 .borders(Borders::ALL)
                 .border_type(BorderType::Plain)
                 .border_style(Style::default().fg(match active_panel {
-                    ActivePanel::Menu => model.theme.secondary.c800,
-                    _ => model.theme.secondary.c950,
+                    ActivePanel::Menu => model.theme.border_active,
+                    _ => model.theme.border,
                 }))
                 .padding(Padding::symmetric(2, 1)),
         )
         .highlight_style(
             Style::new()
-                .fg(model.theme.secondary.c500)
-                .bg(model.theme.primary.c900)
+                .fg(model.theme.muted_forground)
+                .bg(model.theme.muted)
                 .add_modifier(Modifier::BOLD),
         )
         .highlight_symbol("");

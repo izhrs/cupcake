@@ -120,7 +120,7 @@ impl DownloadManager {
             .to_lowercase()
             .chars()
             .filter_map(|c| match c {
-                'a'..='z' | '0'..='9' => Some(c),
+                'a'..='z' | '0'..='9' | '.' => Some(c), // preserve file extensions
                 ' ' | '_' | '-' => Some(separator),
                 _ if c.is_ascii() => None,
                 _ => Some(separator),

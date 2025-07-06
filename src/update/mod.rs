@@ -36,6 +36,10 @@ pub async fn update(model: &mut Model, msg: Message) {
             }
         }
 
+        Message::UpdateProgressSingle => {
+            model.undate_progress_single();
+        }
+
         // Menu
         Message::FocusContent => model.focus_content().await,
         Message::ToggleSelected => {

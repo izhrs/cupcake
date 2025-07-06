@@ -196,6 +196,8 @@ impl DownloadManager {
                                 progress_percent: progress,
                                 id,
                             }));
+
+                            let _ = tx.send(Message::UpdateProgressSingle);
                         }
                     }
                 }
@@ -241,6 +243,30 @@ impl DownloadManager {
 
         self.state.table_state.select(Some(i));
         self.state.scroll_state = self.state.scroll_state.position(i * 3);
+    }
+
+    /// Get the number of running downloads
+    pub fn running_downloads(&self) -> usize {
+        self.state
+            .filtered_downloads
+            .iter()
+            .filter(|t| matches!(t.status, DownloadStatus::Running))
+            .count()
+    }
+
+    /// Get the average progress of all running downloads
+    pub fn average_progress(&self) -> f32 {
+        let total_progress: f32 = self
+            .state
+            .filtered_downloads
+            .iter()
+            .filter(|t| matches!(t.status, DownloadStatus::Running))
+            .map(|t| t.progress_percent)
+            .sum();
+
+        let running_count = self.running_downloads() as f32;
+
+        (total_progress / running_count).clamp(0.0, 100.0)
     }
 
     /// Filter tasks based on the selected menu item

@@ -130,6 +130,12 @@ impl Model {
         let mut active_panel = self.active_panel.write().await;
         *active_panel = ActivePanel::Content;
     }
+
+    pub fn undate_progress_single(&mut self) {
+        if self.progress <= self.downloader.single.average_progress() {
+            self.progress = self.downloader.single.average_progress();
+        }
+    }
 }
 
 #[derive(Clone, Copy, Default, Debug)]

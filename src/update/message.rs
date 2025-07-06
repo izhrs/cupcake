@@ -20,6 +20,7 @@ pub enum Message {
     SelectPreviousRowPlaylist,
     ProgressUp,
     ProgressDown,
+    UpdateProgressSingle,
 
     // Menu actions
     FocusContent,

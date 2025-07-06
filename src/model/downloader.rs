@@ -65,20 +65,20 @@ impl std::fmt::Display for DownloadStatus {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
-pub struct DownloadQueue {
+pub struct DownloadManager {
     downloads: VecDeque<DownloadTask>,
     #[serde(skip)]
-    pub(crate) state: DownloadQueueUIState,
+    pub(crate) state: DownloadManagerUIState,
 }
 
 #[derive(Clone, Debug, Default)]
-pub(crate) struct DownloadQueueUIState {
+pub(crate) struct DownloadManagerUIState {
     pub(crate) filtered_downloads: VecDeque<DownloadTask>,
     pub(crate) table_state: TableState,
     pub(crate) scroll_state: ScrollbarState,
 }
 
-impl DownloadQueue {
+impl DownloadManager {
     // this optimisation is called "bitch, suck my dick"
     pub fn update_download(&mut self, task: DownloadTask) {
         let task_id = task.id;
@@ -114,6 +114,24 @@ impl DownloadQueue {
         &self.state.filtered_downloads
     }
 
+    fn slugify(input: &str, separator: char) -> String {
+        input
+            .trim()
+            .to_lowercase()
+            .chars()
+            .filter_map(|c| match c {
+                'a'..='z' | '0'..='9' => Some(c),
+                ' ' | '_' | '-' => Some(separator),
+                _ if c.is_ascii() => None,
+                _ => Some(separator),
+            })
+            .collect::<String>()
+            .split(separator)
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<_>>()
+            .join(separator.to_string().as_str())
+    }
+
     fn extract_filename(source: &str) -> Result<String> {
         let name = Command::new("yt-dlp")
             .arg("--no-warnings")
@@ -126,7 +144,7 @@ impl DownloadQueue {
             .wait_with_output()?
             .stdout;
 
-        Ok(String::from_utf8(name)?)
+        Ok(Self::slugify(String::from_utf8(name)?.as_str(), '_'))
     }
 
     pub fn start_download(&self, source: &str, destination: PathBuf, tx: UnboundedSender<Message>) {
@@ -450,13 +468,13 @@ impl DownloadQueue {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
-pub struct DownloadManager {
-    pub single: DownloadQueue,
-    pub batch: DownloadQueue,
-    pub playlist: DownloadQueue,
+pub struct Downloader {
+    pub single: DownloadManager,
+    pub batch: DownloadManager,
+    pub playlist: DownloadManager,
 }
 
-impl DownloadManager {
+impl Downloader {
     pub fn new() -> Self {
         Self::default()
     }
@@ -465,11 +483,11 @@ impl DownloadManager {
         let path = dirs::data_local_dir().unwrap_or("".into()).join("cupcake");
         fs::create_dir_all(path.clone())?;
         let file = File::open(path.join("tasks.json"))?;
-        let store: DownloadManager = serde_json::from_reader(file)?;
+        let store: Downloader = serde_json::from_reader(file)?;
 
-        self.single = DownloadQueue {
+        self.single = DownloadManager {
             downloads: store.single.downloads.clone(),
-            state: DownloadQueueUIState {
+            state: DownloadManagerUIState {
                 filtered_downloads: store.single.downloads.clone(),
                 table_state: TableState::default(),
                 scroll_state: ScrollbarState::new(
@@ -482,9 +500,9 @@ impl DownloadManager {
             },
         };
 
-        self.batch = DownloadQueue {
+        self.batch = DownloadManager {
             downloads: store.batch.downloads.clone(),
-            state: DownloadQueueUIState {
+            state: DownloadManagerUIState {
                 filtered_downloads: store.batch.downloads.clone(),
                 table_state: TableState::default(),
                 scroll_state: ScrollbarState::new(
@@ -497,9 +515,9 @@ impl DownloadManager {
             },
         };
 
-        self.playlist = DownloadQueue {
+        self.playlist = DownloadManager {
             downloads: store.playlist.downloads.clone(),
-            state: DownloadQueueUIState {
+            state: DownloadManagerUIState {
                 filtered_downloads: store.playlist.downloads.clone(),
                 table_state: TableState::default(),
                 scroll_state: ScrollbarState::new(

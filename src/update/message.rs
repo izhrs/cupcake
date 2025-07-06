@@ -62,6 +62,9 @@ impl Message {
                 KeyCode::Char('q') => {
                     return Some(Message::Quit);
                 }
+                KeyCode::Char('a') => {
+                    return Some(Message::OpenAddTaskModal);
+                }
                 KeyCode::Char('n') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     return Some(Message::OpenAddTaskModal);
                 }

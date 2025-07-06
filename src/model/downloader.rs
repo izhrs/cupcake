@@ -16,15 +16,15 @@ use crate::update::message::Message;
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct DownloadTask {
     #[serde(skip)]
-    pub(crate) id: u64,
-    pub(crate) title: String,
-    pub(crate) source_url: String,
-    pub(crate) destination_path: PathBuf,
-    pub(crate) download_speed: String,
-    pub(crate) file_size: String,
-    pub(crate) progress_percent: f32,
-    pub(crate) estimated_time: String,
-    pub(crate) status: DownloadStatus,
+    id: u64,
+    pub title: String,
+    pub source_url: String,
+    pub destination_path: PathBuf,
+    pub download_speed: String,
+    pub file_size: String,
+    pub progress_percent: f32,
+    pub estimated_time: String,
+    pub status: DownloadStatus,
 }
 
 impl DownloadTask {
@@ -34,15 +34,19 @@ impl DownloadTask {
         self.download_speed = speed;
         self.status = status;
     }
+
+    pub fn id(&self) -> u64 {
+        self.id
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum DownloadStatus {
-    Running,
-    Paused,
     #[default]
     Queued,
+    Running,
+    Paused,
     Completed,
     Failed,
 }
@@ -61,7 +65,7 @@ impl std::fmt::Display for DownloadStatus {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
-pub(crate) struct DownloadQueue {
+pub struct DownloadQueue {
     downloads: VecDeque<DownloadTask>,
     #[serde(skip)]
     pub(crate) state: DownloadQueueUIState,
@@ -75,13 +79,6 @@ pub(crate) struct DownloadQueueUIState {
 }
 
 impl DownloadQueue {
-    pub fn default() -> Self {
-        Self {
-            downloads: VecDeque::new(),
-            state: Default::default(),
-        }
-    }
-
     // this optimisation is called "bitch, suck my dick"
     pub fn update_download(&mut self, task: DownloadTask) {
         let task_id = task.id;
@@ -113,6 +110,10 @@ impl DownloadQueue {
         }
     }
 
+    pub fn filtered_downloads(&self) -> &VecDeque<DownloadTask> {
+        &self.state.filtered_downloads
+    }
+
     fn extract_filename(source: &str) -> Result<String> {
         let name = Command::new("yt-dlp")
             .arg("--no-warnings")
@@ -134,7 +135,7 @@ impl DownloadQueue {
             if let Err(e) = async {
 
                 let id = rand::random::<u64>();
-                let name = Self::extract_filename(&source)?;
+                let title = Self::extract_filename(&source)?;
 
                 let mut cmd = Command::new("yt-dlp")
                 .arg("--no-warnings")
@@ -143,7 +144,7 @@ impl DownloadQueue {
                 .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
                 .arg(source.clone())
                 .arg("-o")
-                .arg(format!("{}/{}", destination.to_string_lossy(), name))
+                .arg(format!("{}/{}", destination.to_string_lossy(), title))
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
                 .spawn()?;
@@ -159,7 +160,7 @@ impl DownloadQueue {
 
                         if parts.len() >= 5 {
                             let progress = parts[0].trim_end_matches('%').parse::<f32>().unwrap_or(0.0);
-                            let size = parts[1].to_string();
+                            let file_size = parts[1].to_string();
                             let status =  match progress {
                                 100.0 => DownloadStatus::Completed,
                                 _ if progress > 0.0 => DownloadStatus::Running,
@@ -167,10 +168,10 @@ impl DownloadQueue {
                             };
 
                             let _ = tx.send(Message::UpdateDownloadStatus(DownloadTask {
-                                title: name.clone(),
-                                file_size: size,
+                                title: title.clone(),
+                                file_size,
                                 source_url: source.to_string(),
-                                destination_path: destination.join(name.clone()),
+                                destination_path: destination.join(title.clone()),
                                 estimated_time: parts[4].to_string(),
                                 download_speed: parts[2].to_string(),
                                 status,
@@ -188,7 +189,7 @@ impl DownloadQueue {
         });
     }
 
-    pub fn next_row(&mut self) {
+    pub(crate) fn next_row(&mut self) {
         let len = self.state.filtered_downloads.len();
 
         let i = match self.state.table_state.selected() {
@@ -206,7 +207,7 @@ impl DownloadQueue {
         self.state.scroll_state = self.state.scroll_state.position(i * 3);
     }
 
-    pub fn previous_row(&mut self) {
+    pub(crate) fn previous_row(&mut self) {
         let len = self.state.filtered_downloads.len();
 
         let i = match self.state.table_state.selected() {
@@ -232,7 +233,7 @@ impl DownloadQueue {
     /// All the &str are Tree identifiers
     // TODO: refactor this and make it idiomatic
     // also, fuck this garbage, right now i just want it to work
-    pub(crate) fn filter_downloads_by_category(&mut self, selected_menu_item: Vec<&str>) {
+    pub fn filter_downloads_by_category(&mut self, selected_menu_item: Vec<&str>) {
         match selected_menu_item.len() {
             1 => {
                 let identifier = selected_menu_item[0];
@@ -456,13 +457,6 @@ pub struct DownloadManager {
 }
 
 impl DownloadManager {
-    pub fn default() -> Self {
-        Self {
-            single: DownloadQueue::default(),
-            batch: DownloadQueue::default(),
-            playlist: DownloadQueue::default(),
-        }
-    }
     pub fn new() -> Self {
         Self::default()
     }

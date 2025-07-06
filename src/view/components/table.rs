@@ -52,7 +52,7 @@ pub fn render(
             Text::from(data.name.to_string()),
             Text::from(data.speed.clone()),
             Text::from(data.size.clone()),
-            Text::from(format!("{:.0} %", data.progress)),
+            Text::from(format!("{:.0}%", data.progress)),
             Text::from(data.eta.clone()),
             Text::from(data.status.to_string()),
         ];

@@ -56,6 +56,9 @@ impl App {
                 *lock
             };
 
+            // passing state/model as mutable reference because there are components that
+            // need to mutate the state directly using frame.render_stateful_widget
+            // (because of this, ratatui can never be a pure elm architecture)
             terminal.draw(|frame| draw(&mut self.state, frame, &active_panel, &active_tab))?;
 
             if let Some(message) = message_rx.recv().await {

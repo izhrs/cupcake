@@ -1,4 +1,7 @@
-use crate::model::state::{ActivePanel, ActiveTab};
+use crate::model::{
+    state::{ActivePanel, ActiveTab},
+    task::Task,
+};
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
 
 #[derive(Debug, Clone)]
@@ -37,6 +40,8 @@ pub enum Message {
     HandleInputEvent(Event),
     AddTaskSingle,
     CloseModal,
+
+    UpdateTaskStatus(Task),
 }
 
 impl Message {

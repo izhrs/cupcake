@@ -1,13 +1,10 @@
 pub mod message;
 
-use std::{path::PathBuf, sync::atomic::Ordering};
+use std::sync::atomic::Ordering;
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
-    model::{
-        state::{FocusedInput, InputState, Model},
-        task::TaskState,
-    },
+    model::state::{FocusedInput, InputState, Model},
     update::message::Message,
 };
 
@@ -91,15 +88,19 @@ pub async fn update(model: &mut Model, msg: Message) {
             }
         },
         Message::AddTaskSingle => {
-            if let Ok(task) = TaskState::extract_data(
+            let tx = model.message_tx.clone().unwrap();
+            model.task_store.single.download_task(
                 model.input_state.source.value(),
-                PathBuf::from(model.input_state.destination.value()),
-            ) {
-                model.task_store.single.add_task(task).unwrap();
-                model.focus_content().await;
-                model.input_state = InputState::new();
-            }
+                model.input_state.destination.value().into(),
+                tx,
+            );
+            model.focus_content().await;
+            model.input_state = InputState::new();
         }
+        Message::UpdateTaskStatus(task) => {
+            model.task_store.single.update_task_state(task);
+        }
+
         Message::CloseModal => model.close_modal().await,
     }
 }

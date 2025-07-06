@@ -4,17 +4,19 @@ use std::{
     io::{BufRead, BufReader},
     path::PathBuf,
     process::{Command, Stdio},
-    sync::mpsc::Sender,
 };
 
 use color_eyre::{Result, eyre::Ok};
 use ratatui::widgets::{ScrollbarState, TableState};
 use serde::{Deserialize, Serialize};
+use tokio::sync::mpsc::UnboundedSender;
+
+use crate::update::message::Message;
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Task {
     #[serde(skip)]
-    pub(crate) id: usize,
+    pub(crate) id: u64,
     pub(crate) name: String,
     pub(crate) source: String,
     pub(crate) destination: PathBuf,
@@ -26,10 +28,11 @@ pub struct Task {
 }
 
 impl Task {
-    fn update(&mut self, speed: String, progress: f32, eta: String) {
+    fn update(&mut self, speed: String, progress: f32, eta: String, status: TaskStatus) {
         self.progress = progress;
         self.eta = eta;
         self.speed = speed;
+        self.status = status;
     }
 }
 
@@ -53,7 +56,7 @@ impl std::fmt::Display for TaskStatus {
             TaskStatus::Finished => "Finished",
             TaskStatus::Failed => "Failed",
         };
-        write!(f, "{}", status)
+        write!(f, "{status}")
     }
 }
 
@@ -68,15 +71,6 @@ pub struct TaskState {
     pub(crate) scroll_state: ScrollbarState,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
-struct TaskProgress {
-    id: usize,
-    progress: f32,
-    size: String,
-    speed: String,
-    eta: String,
-}
-
 impl TaskState {
     pub fn default() -> Self {
         Self {
@@ -87,112 +81,95 @@ impl TaskState {
         }
     }
 
-    pub fn add_task(&mut self, mut task: Task) -> Result<()> {
-        todo!();
-    }
-
-    fn download_task(
-        id: usize,
-        source: String,
-        destination: PathBuf,
-        tx: Sender<TaskProgress>,
-    ) -> Result<()> {
-        let mut cmd = Command::new("yt-dlp")
-            .arg("--no-warnings")
-            .arg("--newline")
-            .arg("--progress-template")
-            .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
-            // .arg("-o")
-            // .arg(destination.to_str().unwrap())
-            .arg(source.as_str())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
-
-        let stdout = cmd.stdout.take().expect("Failed to capture stdout");
-        let reader = BufReader::new(stdout);
-
-        for line in reader.lines() {
-            let line = line?;
-            if let Some(progress) = Self::parse_progress(id, &line) {
-                tx.send(progress)?;
-            }
+    // this optimisation is called "suck my dick nigga"
+    pub fn update_task_state(&mut self, task: Task) {
+        let task_id = task.id;
+        if let Some(existing_task) = self.db.iter_mut().find(|t| t.id == task_id) {
+            existing_task.update(
+                task.speed.clone(),
+                task.progress,
+                task.eta.clone(),
+                task.status.clone(),
+            );
+        } else {
+            self.db.push_back(task.clone());
         }
 
-        Ok(())
+        if let Some(existing_task) = self.tasks.iter_mut().find(|t| t.id == task_id) {
+            existing_task.update(task.speed, task.progress, task.eta, task.status);
+        } else {
+            self.tasks.push_back(task.clone());
+        }
     }
 
-    fn parse_progress(id: usize, line: &str) -> Option<TaskProgress> {
-        if !line.starts_with("[CUPCAKE]") {
-            return None;
-        }
+    pub fn download_task(&self, source: &str, destination: PathBuf, tx: UnboundedSender<Message>) {
+        let source = source.to_string();
+        tokio::spawn(async move {
+            if let Err(e) = async {
 
-        let parts: Vec<&str> = line[10..].trim().split_whitespace().collect();
-        if parts.len() < 5 {
-            return None;
-        }
+                let id = rand::random::<u64>();
+                let name = Command::new("yt-dlp")
+                    .arg("--no-warnings")
+                    .arg("--print")
+                    .arg("filename")
+                    .arg(source.clone())
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .spawn()?
+                    .wait_with_output()?
+                    .stdout;
 
-        let progress = parts[0].trim_end_matches('%').parse::<f32>().ok()?;
-        let size = parts[1].to_string();
-        let speed = parts[2].to_string();
-        let eta = parts[4].to_string();
+                let name = String::from_utf8(name)?;
+                let mut cmd = Command::new("yt-dlp")
+                .arg("--no-warnings")
+                .arg("--newline")
+                .arg("--progress-template")
+                .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
+                .arg(source.clone())
+                .arg("-o")
+                .arg(destination.to_str().unwrap_or(""))
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn()?;
 
-        Some(TaskProgress {
-            id,
-            progress,
-            size,
-            speed,
-            eta,
-        })
-    }
+                let stdout = cmd.stdout.take().expect("Failed to capture stdout");
+                let reader = BufReader::new(stdout);
 
-    pub fn extract_data(source: &str, destination: PathBuf) -> Result<Task> {
-        let name = Command::new("yt-dlp")
-            .arg("--no-warnings")
-            .arg("--print")
-            .arg("filename")
-            .arg(source)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?
-            .wait_with_output()?
-            .stdout;
+                for line in reader.lines() {
+                    let line = line?;
 
-        let name = String::from_utf8(name).unwrap();
+                    if line.starts_with("[CUPCAKE]") {
+                        let parts: Vec<&str> = line[10..].split_whitespace().collect();
 
-        let mut cmd = Command::new("yt-dlp")
-            .arg("--no-warnings")
-            .arg("--newline")
-            .arg("--progress-template")
-            .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
-            .arg(source)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
+                        if parts.len() >= 5 {
+                            let progress = parts[0].trim_end_matches('%').parse::<f32>().unwrap_or(0.0);
+                            let size = parts[1].to_string();
+                            let status =  match progress {
+                                100.0 => TaskStatus::Finished,
+                                _ if progress > 0.0 => TaskStatus::Running,
+                                _ => TaskStatus::Queued,
+                            };
 
-        let stdout = cmd.stdout.take().expect("Failed to capture stdout");
-        let reader = BufReader::new(stdout);
-
-        for line in reader.lines() {
-            let line = line?;
-
-            if line.starts_with("[CUPCAKE]") {
-                let parts: Vec<&str> = line[10..].trim().split_whitespace().collect();
-
-                if parts.len() >= 5 {
-                    let size = parts[1].to_string();
-                    return Ok(Task {
-                        name: name.clone(),
-                        size,
-                        source: source.to_string(),
-                        destination: destination.join(name),
-                        eta: "N/A".to_string(),
-                        ..Default::default()
-                    });
+                            let _ = tx.send(Message::UpdateTaskStatus(Task {
+                                name: name.clone(),
+                                size,
+                                source: source.to_string(),
+                                destination: destination.join(name.clone()),
+                                eta: parts[4].to_string(),
+                                speed: parts[2].to_string(),
+                                status,
+                                progress,
+                                id,
+                            }));
+                        }
+                    }
                 }
+
+                Ok(())
+            }.await {
+                eprintln!("{e}");
             }
-        }
-        Err(color_eyre::eyre::eyre!("Failed to extract data"))
+        });
     }
 
     pub fn next_row(&mut self) {
@@ -237,33 +214,33 @@ impl TaskState {
     ///
     /// coming from `tui_tree_widget::TreeState.selected()`
     /// All the &str are Tree identifiers
-    // TODO: fuck this garbage, right now i just want it to work
+    // TODO: refactor this and make it idiomatic
+    // also, fuck this garbage, right now i just want it to work
     pub(crate) fn apply_menu_filter(&mut self, selected_menu_item: Vec<&str>) {
         match selected_menu_item.len() {
-            1 => match selected_menu_item[0] {
-                identifier => {
-                    self.tasks = self
-                        .db
-                        .iter()
-                        .filter(|&t| match identifier {
-                            "unfinished" => {
-                                !matches!(t.status, TaskStatus::Finished | TaskStatus::Failed)
-                            }
-                            "finished" => matches!(t.status, TaskStatus::Finished),
-                            "failed" => matches!(t.status, TaskStatus::Failed),
-                            _ => true,
-                        })
-                        .cloned()
-                        .collect();
-                    self.scroll_state = ScrollbarState::new(
-                        (if !self.tasks.is_empty() {
-                            self.tasks.len() - 1
-                        } else {
-                            0
-                        }) * 3,
-                    );
-                }
-            },
+            1 => {
+                let identifier = selected_menu_item[0];
+                self.tasks = self
+                    .db
+                    .iter()
+                    .filter(|&t| match identifier {
+                        "unfinished" => {
+                            !matches!(t.status, TaskStatus::Finished | TaskStatus::Failed)
+                        }
+                        "finished" => matches!(t.status, TaskStatus::Finished),
+                        "failed" => matches!(t.status, TaskStatus::Failed),
+                        _ => true,
+                    })
+                    .cloned()
+                    .collect();
+                self.scroll_state = ScrollbarState::new(
+                    (if !self.tasks.is_empty() {
+                        self.tasks.len() - 1
+                    } else {
+                        0
+                    }) * 3,
+                );
+            }
 
             2 => match selected_menu_item[1] {
                 "all-music" | "finished-music" | "unfinished-music" => {

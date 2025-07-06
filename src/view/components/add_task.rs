@@ -21,7 +21,10 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
             ])
             .centered(),
         )
-        .style(Style::default().bg(model.theme.muted));
+        .style(match model.theme.background {
+            Some(color) => Style::default().bg(color).fg(model.theme.forground),
+            None => Style::default().fg(model.theme.forground),
+        });
 
     frame.render_widget(block, area);
 
@@ -39,7 +42,7 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
 
     let source_input = Paragraph::new(model.input_state.source.value())
         .style(Style::default().fg(match model.input_state.focused {
-            FocusedInput::Source => model.theme.primary,
+            FocusedInput::Source => model.theme.forground,
             _ => model.theme.muted,
         }))
         .scroll((0, scroll as u16))
@@ -49,7 +52,7 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
 
     let destination_input = Paragraph::new(model.input_state.destination.value())
         .style(Style::default().fg(match model.input_state.focused {
-            FocusedInput::Destination => model.theme.primary,
+            FocusedInput::Destination => model.theme.forground,
             _ => model.theme.muted,
         }))
         .scroll((0, scroll as u16))

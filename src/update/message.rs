@@ -59,12 +59,6 @@ impl Message {
                 KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     return Some(Message::Quit);
                 }
-                KeyCode::Char('q') => {
-                    return Some(Message::Quit);
-                }
-                KeyCode::Char('a') => {
-                    return Some(Message::OpenAddTaskModal);
-                }
                 KeyCode::Char('n') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     return Some(Message::OpenAddTaskModal);
                 }
@@ -73,6 +67,8 @@ impl Message {
 
             match active_panel {
                 ActivePanel::Content => match key.code {
+                    KeyCode::Char('a') => Some(Message::OpenAddTaskModal),
+                    KeyCode::Char('q') => Some(Message::Quit),
                     KeyCode::Left | KeyCode::Char('h')
                         if key.modifiers.contains(KeyModifiers::CONTROL) =>
                     {
@@ -98,6 +94,8 @@ impl Message {
                 },
 
                 ActivePanel::Menu => match key.code {
+                    KeyCode::Char('a') => Some(Message::OpenAddTaskModal),
+                    KeyCode::Char('q') => Some(Message::Quit),
                     KeyCode::Right | KeyCode::Char('l')
                         if key.modifiers.contains(KeyModifiers::CONTROL) =>
                     {

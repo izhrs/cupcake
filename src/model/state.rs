@@ -127,7 +127,6 @@ impl Model {
     }
 
     pub async fn close_modal(&mut self) {
-        self.input_state = InputState::new();
         let mut active_panel = self.active_panel.write().await;
         *active_panel = ActivePanel::Content;
     }
@@ -210,7 +209,7 @@ pub struct InputState {
 impl Default for InputState {
     fn default() -> Self {
         let download_dir = dirs::download_dir()
-            .unwrap_or("".into())
+            .unwrap_or(std::env::current_dir().unwrap_or_default())
             .to_str()
             .unwrap_or("")
             .to_string();

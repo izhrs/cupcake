@@ -95,6 +95,8 @@ pub async fn update(model: &mut Model, msg: Message) {
                 tx,
             );
             model.focus_content().await;
+
+            // Reset input state after adding a task
             model.input_state = InputState::new();
         }
         Message::UpdateDownloadStatus(task) => {

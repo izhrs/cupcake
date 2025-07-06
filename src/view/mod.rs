@@ -45,21 +45,27 @@ pub fn draw(
         ActiveTab::Single => {
             table::render(model, frame, layout.content, active_panel, active_tab);
 
-            if (model.task_store.single.tasks.len() * 3) > layout.content.height as usize {
+            if (model.downloader.single.state.filtered_downloads.len() * 3)
+                > layout.content.height as usize
+            {
                 scrollbar::render(model, frame, layout.content, active_tab);
             }
         }
         ActiveTab::Batch => {
             table::render(model, frame, layout.content, active_panel, active_tab);
 
-            if (model.task_store.batch.tasks.len() * 3) > layout.content.height as usize {
+            if (model.downloader.batch.state.filtered_downloads.len() * 3)
+                > layout.content.height as usize
+            {
                 scrollbar::render(model, frame, layout.content, active_tab);
             }
         }
         ActiveTab::Playlist => {
             table::render(model, frame, layout.content, active_panel, active_tab);
 
-            if (model.task_store.playlist.tasks.len() * 3) > layout.content.height as usize {
+            if (model.downloader.playlist.state.filtered_downloads.len() * 3)
+                > layout.content.height as usize
+            {
                 scrollbar::render(model, frame, layout.content, active_tab);
             }
         }

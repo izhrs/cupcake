@@ -36,9 +36,9 @@ pub fn render(
         .height(1);
 
     let tasks = match active_tab {
-        ActiveTab::Single => model.task_store.single.tasks.clone(),
-        ActiveTab::Batch => model.task_store.batch.tasks.clone(),
-        ActiveTab::Playlist => model.task_store.playlist.tasks.clone(),
+        ActiveTab::Single => model.downloader.single.state.filtered_downloads.clone(),
+        ActiveTab::Batch => model.downloader.batch.state.filtered_downloads.clone(),
+        ActiveTab::Playlist => model.downloader.playlist.state.filtered_downloads.clone(),
         _ => Default::default(),
     };
 
@@ -49,11 +49,11 @@ pub fn render(
         // };
 
         let item = [
-            Text::from(data.name.to_string()),
-            Text::from(data.speed.clone()),
-            Text::from(data.size.clone()),
-            Text::from(format!("{:.0}%", data.progress)),
-            Text::from(data.eta.clone()),
+            Text::from(data.title.to_string()),
+            Text::from(data.download_speed.clone()),
+            Text::from(data.file_size.clone()),
+            Text::from(format!("{:.0}%", data.progress_percent)),
+            Text::from(data.estimated_time.clone()),
             Text::from(data.status.to_string()),
         ];
         item.into_iter()
@@ -103,10 +103,10 @@ pub fn render(
         t,
         area,
         match active_tab {
-            ActiveTab::Single => &mut model.task_store.single.table_state,
-            ActiveTab::Batch => &mut model.task_store.batch.table_state,
-            ActiveTab::Playlist => &mut model.task_store.playlist.table_state,
-            _ => &mut model.task_store.single.table_state,
+            ActiveTab::Single => &mut model.downloader.single.state.table_state,
+            ActiveTab::Batch => &mut model.downloader.batch.state.table_state,
+            ActiveTab::Playlist => &mut model.downloader.playlist.state.table_state,
+            _ => &mut model.downloader.single.state.table_state,
         },
     );
 }

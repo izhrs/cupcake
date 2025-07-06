@@ -1,5 +1,3 @@
-// Theme is part of the model/state so theme can be changed at runtime/realtime.
-
 use ratatui::style::Color;
 
 // TODO: make propeties more descriptive instead of using shadcn like names

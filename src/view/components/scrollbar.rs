@@ -20,10 +20,10 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect, active_tab: &Act
             horizontal: 0,
         }),
         match active_tab {
-            ActiveTab::Single => &mut model.task_store.single.scroll_state,
-            ActiveTab::Batch => &mut model.task_store.batch.scroll_state,
-            ActiveTab::Playlist => &mut model.task_store.playlist.scroll_state,
-            _ => &mut model.task_store.single.scroll_state,
+            ActiveTab::Single => &mut model.downloader.single.state.scroll_state,
+            ActiveTab::Batch => &mut model.downloader.batch.state.scroll_state,
+            ActiveTab::Playlist => &mut model.downloader.playlist.state.scroll_state,
+            _ => &mut model.downloader.single.state.scroll_state,
         },
     )
 }

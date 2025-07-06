@@ -11,7 +11,7 @@ use crate::{
 pub async fn update(model: &mut Model, msg: Message) {
     match msg {
         Message::Quit => {
-            model.task_store.save().expect("failed to save tasks");
+            model.downloader.save().expect("failed to save tasks");
             model.running.store(false, Ordering::Relaxed);
         }
 
@@ -19,12 +19,12 @@ pub async fn update(model: &mut Model, msg: Message) {
         Message::FocusMenu => model.focus_menu().await,
         Message::SwitchNextTab => model.next_tab().await,
         Message::SwitchPreviousTab => model.previous_tab().await,
-        Message::SelectNextRowSingle => model.task_store.single.next_row(),
-        Message::SelectNextRowBatch => model.task_store.batch.next_row(),
-        Message::SelectNextRowPlaylist => model.task_store.playlist.next_row(),
-        Message::SelectPreviousRowSingle => model.task_store.single.previous_row(),
-        Message::SelectPreviousRowBatch => model.task_store.batch.previous_row(),
-        Message::SelectPreviousRowPlaylist => model.task_store.playlist.previous_row(),
+        Message::SelectNextRowSingle => model.downloader.single.next_row(),
+        Message::SelectNextRowBatch => model.downloader.batch.next_row(),
+        Message::SelectNextRowPlaylist => model.downloader.playlist.next_row(),
+        Message::SelectPreviousRowSingle => model.downloader.single.previous_row(),
+        Message::SelectPreviousRowBatch => model.downloader.batch.previous_row(),
+        Message::SelectPreviousRowPlaylist => model.downloader.playlist.previous_row(),
         Message::ProgressUp => {
             if model.progress < 100.0 {
                 model.progress += 1.0;
@@ -60,18 +60,18 @@ pub async fn update(model: &mut Model, msg: Message) {
             model.menu_state.select_last();
         }
 
-        Message::ApplyMenuFilterSingle => model
-            .task_store
+        Message::ApplyCategoryFilterSingle => model
+            .downloader
             .single
-            .apply_menu_filter(model.menu_state.selected().to_owned()),
-        Message::ApplyMenuFilterBatch => model
-            .task_store
+            .filter_downloads_by_category(model.menu_state.selected().to_owned()),
+        Message::ApplyCategoryFilterBatch => model
+            .downloader
             .batch
-            .apply_menu_filter(model.menu_state.selected().to_owned()),
-        Message::ApplyMenuFilterPlaylist => model
-            .task_store
+            .filter_downloads_by_category(model.menu_state.selected().to_owned()),
+        Message::ApplyCategoryFilterPlaylist => model
+            .downloader
             .playlist
-            .apply_menu_filter(model.menu_state.selected().to_owned()),
+            .filter_downloads_by_category(model.menu_state.selected().to_owned()),
 
         // Modal
         Message::OpenAddTaskModal => model.focus_modal().await,
@@ -89,7 +89,7 @@ pub async fn update(model: &mut Model, msg: Message) {
         },
         Message::AddTaskSingle => {
             let tx = model.message_tx.clone().unwrap();
-            model.task_store.single.download_task(
+            model.downloader.single.start_download(
                 model.input_state.source.value(),
                 model.input_state.destination.value().into(),
                 tx,
@@ -97,8 +97,8 @@ pub async fn update(model: &mut Model, msg: Message) {
             model.focus_content().await;
             model.input_state = InputState::new();
         }
-        Message::UpdateTaskStatus(task) => {
-            model.task_store.single.update_task_state(task);
+        Message::UpdateDownloadStatus(task) => {
+            model.downloader.single.update_download(task);
         }
 
         Message::CloseModal => model.close_modal().await,

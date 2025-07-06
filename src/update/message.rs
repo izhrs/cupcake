@@ -1,6 +1,6 @@
 use crate::model::{
+    downloader::DownloadTask,
     state::{ActivePanel, ActiveTab},
-    task::Task,
 };
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
 
@@ -30,9 +30,9 @@ pub enum Message {
     SelectNextMenuItem,
     SelectFirstMenuItem,
     SelectLastMenuItem,
-    ApplyMenuFilterSingle,
-    ApplyMenuFilterBatch,
-    ApplyMenuFilterPlaylist,
+    ApplyCategoryFilterSingle,
+    ApplyCategoryFilterBatch,
+    ApplyCategoryFilterPlaylist,
 
     // Modal actions
     OpenAddTaskModal,
@@ -41,7 +41,7 @@ pub enum Message {
     AddTaskSingle,
     CloseModal,
 
-    UpdateTaskStatus(Task),
+    UpdateDownloadStatus(DownloadTask),
 }
 
 impl Message {
@@ -101,9 +101,9 @@ impl Message {
                         Some(Message::FocusContent)
                     }
                     KeyCode::Enter => match active_tab {
-                        ActiveTab::Single => Some(Message::ApplyMenuFilterSingle),
-                        ActiveTab::Batch => Some(Message::ApplyMenuFilterBatch),
-                        ActiveTab::Playlist => Some(Message::ApplyMenuFilterPlaylist),
+                        ActiveTab::Single => Some(Message::ApplyCategoryFilterSingle),
+                        ActiveTab::Batch => Some(Message::ApplyCategoryFilterBatch),
+                        ActiveTab::Playlist => Some(Message::ApplyCategoryFilterPlaylist),
                         _ => None,
                     },
                     KeyCode::Char(' ') => Some(Message::ToggleSelected),

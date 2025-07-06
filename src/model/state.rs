@@ -9,13 +9,13 @@ use tokio::sync::{RwLock, mpsc::UnboundedSender};
 use tui_input::Input;
 use tui_tree_widget::{TreeItem, TreeState};
 
-use crate::{model::task::TaskStore, model::theme::Theme, update::message::Message};
+use crate::{model::downloader::DownloadManager, model::theme::Theme, update::message::Message};
 
 pub struct Model {
     pub message_tx: Option<UnboundedSender<Message>>,
     pub(crate) active_panel: Arc<RwLock<ActivePanel>>, // focused window
     pub(crate) progress: f32,
-    pub(crate) task_store: TaskStore,
+    pub(crate) downloader: DownloadManager,
     pub(crate) active_tab: Arc<RwLock<ActiveTab>>,
     pub(crate) menu_state: TreeState<&'static str>,
     pub(crate) menu_items: Vec<TreeItem<'static, &'static str>>,
@@ -32,7 +32,9 @@ impl Default for Model {
             active_panel: Arc::new(RwLock::new(ActivePanel::default())),
             active_tab: Arc::new(RwLock::new(ActiveTab::default())),
             progress: 0.0,
-            task_store: TaskStore::new().load().unwrap_or(TaskStore::default()),
+            downloader: DownloadManager::new()
+                .load()
+                .unwrap_or(DownloadManager::default()),
             menu_state: TreeState::default(),
             theme: Theme::default(),
             input_state: InputState::default(),

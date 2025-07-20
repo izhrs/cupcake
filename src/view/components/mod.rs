@@ -1,8 +1,10 @@
 pub mod action_button;
-pub mod add_task;
+pub mod destination_input_modal;
 pub mod logo;
 pub mod menu;
 pub mod progress_bar;
 pub mod scrollbar;
+pub mod source_input_modal;
+pub mod static_modal;
 pub mod table;
 pub mod tabs;

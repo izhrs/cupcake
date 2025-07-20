@@ -4,7 +4,7 @@ use std::sync::atomic::Ordering;
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
-    model::state::{FocusedInput, InputState, Model},
+    model::state::{FocusedInput, Model},
     update::message::Message,
 };
 
@@ -78,31 +78,30 @@ pub async fn update(model: &mut Model, msg: Message) {
             .filter_downloads_by_category(model.menu_state.selected().to_owned()),
 
         // Modal
-        Message::OpenAddTaskModal => model.focus_modal().await,
+        Message::ShowAddTaskModal => model.show_source_input_model().await,
         Message::ToggleFocusedInput => match model.input_state.focused {
-            FocusedInput::Destination => model.input_state.focused = FocusedInput::Source,
-            FocusedInput::Source => model.input_state.focused = FocusedInput::Destination,
+            FocusedInput::Destination => model.input_state.focused = FocusedInput::Name,
+            FocusedInput::Name => model.input_state.focused = FocusedInput::Destination,
         },
-        Message::HandleInputEvent(e) => match model.input_state.focused {
-            FocusedInput::Source => {
-                model.input_state.source.handle_event(&e);
+        Message::HandleSourceInputEvent(e) => {
+            model.input_state.source.handle_event(&e);
+        }
+        Message::HandleDestinationInputEvent(e) => match model.input_state.focused {
+            FocusedInput::Name => {
+                model.input_state.name.handle_event(&e);
             }
             FocusedInput::Destination => {
                 model.input_state.destination.handle_event(&e);
             }
         },
-        Message::AddTaskSingle => {
-            let tx = model.message_tx.clone().unwrap();
-            model.downloader.single.start_download(
-                model.input_state.source.value(),
-                model.input_state.destination.value().into(),
-                tx,
-            );
-            model.focus_content().await;
-
-            // Reset input state after adding a task
-            model.input_state = InputState::new();
+        Message::ExtractMetadata => {
+            model.extract_metadata().await;
         }
+
+        Message::AddTaskSingle => {
+            model.add_task_single().await;
+        }
+
         Message::UpdateDownloadStatus(task) => {
             model.downloader.single.update_download(task);
         }

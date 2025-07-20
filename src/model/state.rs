@@ -9,7 +9,13 @@ use tokio::sync::{RwLock, mpsc::UnboundedSender};
 use tui_input::Input;
 use tui_tree_widget::{TreeItem, TreeState};
 
-use crate::{model::downloader::Downloader, model::theme::Theme, update::message::Message};
+use crate::{
+    model::{
+        downloader::{DownloadManager, Downloader},
+        theme::Theme,
+    },
+    update::message::Message,
+};
 
 pub(crate) struct Model {
     pub(crate) message_tx: Option<UnboundedSender<Message>>,
@@ -21,6 +27,7 @@ pub(crate) struct Model {
     pub(crate) menu_state: TreeState<&'static str>,
     pub(crate) menu_items: Vec<TreeItem<'static, &'static str>>,
     pub(crate) input_state: InputState,
+    pub(crate) modal_prompt: String,
     pub(crate) theme: Theme,
 }
 
@@ -36,6 +43,7 @@ impl Default for Model {
             menu_state: TreeState::default(),
             theme: Theme::default(),
             input_state: InputState::default(),
+            modal_prompt: String::new(),
             menu_items: Default::default(),
         }
     }
@@ -121,9 +129,31 @@ impl Model {
         *active_panel = ActivePanel::Menu;
     }
 
-    pub async fn focus_modal(&mut self) {
+    pub async fn show_source_input_model(&mut self) {
         let mut active_panel = self.active_panel.write().await;
-        *active_panel = ActivePanel::Modal;
+        *active_panel = ActivePanel::Modal(ModalType::SourceInput);
+    }
+
+    pub async fn show_destination_input_modal(&mut self) {
+        let mut active_panel = self.active_panel.write().await;
+        *active_panel = ActivePanel::Modal(ModalType::DestinationInput);
+    }
+
+    pub async fn show_confirm_modal(&mut self) {
+        let mut active_panel = self.active_panel.write().await;
+        *active_panel = ActivePanel::Modal(ModalType::Confirm);
+    }
+
+    pub async fn show_info_modal(&mut self, prompt: String) {
+        self.modal_prompt = prompt;
+        let mut active_panel = self.active_panel.write().await;
+        *active_panel = ActivePanel::Modal(ModalType::Info);
+    }
+
+    pub async fn show_error_modal(&mut self, prompt: String) {
+        self.modal_prompt = prompt;
+        let mut active_panel = self.active_panel.write().await;
+        *active_panel = ActivePanel::Modal(ModalType::Error);
     }
 
     pub async fn close_modal(&mut self) {
@@ -136,6 +166,56 @@ impl Model {
             self.progress = self.downloader.single.average_progress();
         }
     }
+
+    // this function will verify if the source is a downloadable link
+    // extract filename and store it in the input state
+    // not returning anything because user needs to press enter to add the task
+    pub async fn extract_metadata(&mut self) {
+        self.show_info_modal("Extracting metadata...".to_string())
+            .await;
+
+        match DownloadManager::extract_filename(self.input_state.source.value()) {
+            Ok(name) => {
+                self.input_state.name = Input::new(name.clone());
+                self.show_destination_input_modal().await;
+            }
+
+            Err(e) => {
+                self.show_error_modal(format!("Failed to extract metadata. {e}"))
+                    .await;
+                // Reset input state after adding a task
+                self.input_state = InputState::new();
+            }
+        }
+    }
+
+    pub async fn add_task_single(&mut self) {
+        if self.input_state.destination.value().is_empty() {
+            self.show_error_modal("Destination cannot be empty".to_string())
+                .await;
+            self.focus_content().await;
+            return;
+        }
+
+        if self.input_state.name.value().is_empty() {
+            self.show_error_modal("Name cannot be empty".to_string())
+                .await;
+            self.focus_content().await;
+            return;
+        }
+
+        let tx = self.message_tx.clone().unwrap();
+        self.downloader.single.start_download(
+            self.input_state.source.value(),
+            self.input_state.destination.value().into(),
+            self.input_state.name.value().to_string(),
+            tx,
+        );
+
+        // Reset input state after adding a task
+        self.input_state = InputState::new();
+        self.focus_content().await;
+    }
 }
 
 #[derive(Clone, Copy, Default, Debug)]
@@ -143,7 +223,17 @@ pub(crate) enum ActivePanel {
     #[default]
     Content,
     Menu,
-    Modal,
+    Modal(ModalType),
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) enum ModalType {
+    #[default]
+    Info,
+    Error,
+    SourceInput,
+    DestinationInput,
+    Confirm,
 }
 
 #[derive(Default, Clone, Copy, Debug)]
@@ -201,7 +291,7 @@ impl ActiveTab {
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum FocusedInput {
     #[default]
-    Source,
+    Name,
     Destination,
 }
 
@@ -209,6 +299,7 @@ pub enum FocusedInput {
 pub struct InputState {
     pub(crate) source: Input,
     pub(crate) destination: Input,
+    pub(crate) name: Input,
     pub(crate) focused: FocusedInput,
 }
 
@@ -223,6 +314,7 @@ impl Default for InputState {
         Self {
             destination: Input::new(download_dir),
             source: Input::default(),
+            name: Input::default(),
             focused: FocusedInput::default(),
         }
     }

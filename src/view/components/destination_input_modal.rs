@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Margin, Rect},
-    style::{Style, palette::tailwind},
+    style::Style,
     text::{Line, Span},
     widgets::{Block, Clear, Paragraph, Widget},
 };
@@ -38,35 +38,42 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     .split(area);
 
     let width = layout[1].width.max(3) - 5;
-    let scroll = model.input_state.source.visual_scroll(width as usize);
+    let name_scroll = model.input_state.name.visual_scroll(width as usize);
+    let dest_scroll = model.input_state.destination.visual_scroll(width as usize);
 
-    let source_input = Paragraph::new(model.input_state.source.value())
+    let name_input = Paragraph::new(model.input_state.name.value())
         .style(Style::default().fg(match model.input_state.focused {
-            FocusedInput::Source => model.theme.forground,
+            FocusedInput::Name => model.theme.forground,
             _ => model.theme.muted,
         }))
-        .scroll((0, scroll as u16))
-        .block(Block::bordered().title("[ Source URL ]"));
+        .scroll((0, name_scroll as u16))
+        .block(Block::bordered().title("[ Rename ]"));
 
-    frame.render_widget(source_input, layout[1].inner(Margin::new(1, 0)));
+    frame.render_widget(name_input, layout[1].inner(Margin::new(1, 0)));
 
     let destination_input = Paragraph::new(model.input_state.destination.value())
         .style(Style::default().fg(match model.input_state.focused {
             FocusedInput::Destination => model.theme.forground,
             _ => model.theme.muted,
         }))
-        .scroll((0, scroll as u16))
+        .scroll((0, dest_scroll as u16))
         .block(Block::bordered().title("[ Download Path ]"));
 
     frame.render_widget(destination_input, layout[2].inner(Margin::new(1, 0)));
 
     match model.input_state.focused {
-        FocusedInput::Source => {
-            let x = model.input_state.source.visual_cursor().max(scroll) - scroll + 2;
+        FocusedInput::Name => {
+            let x = model.input_state.name.visual_cursor().max(name_scroll) - name_scroll + 2;
             frame.set_cursor_position((layout[1].x + x as u16, layout[1].y + 1));
         }
         FocusedInput::Destination => {
-            let x = model.input_state.destination.visual_cursor().max(scroll) - scroll + 2;
+            let x = model
+                .input_state
+                .destination
+                .visual_cursor()
+                .max(dest_scroll)
+                - dest_scroll
+                + 2;
             frame.set_cursor_position((layout[2].x + x as u16, layout[2].y + 1));
         }
     }
@@ -85,12 +92,12 @@ pub fn render(model: &mut Model, frame: &mut Frame, area: Rect) {
     }));
 
     let cancel_button = Paragraph::new("CENCEL 󱊷")
-        .style(Style::default().fg(tailwind::RED.c500))
+        .style(Style::default().fg(model.theme.destructive))
         .alignment(ratatui::layout::Alignment::Center)
         .block(Block::bordered());
 
     let submit_button = Paragraph::new("SUBMIT 󰌑")
-        .style(Style::default().fg(tailwind::GREEN.c500))
+        .style(Style::default().fg(model.theme.success))
         .alignment(ratatui::layout::Alignment::Center)
         .block(Block::bordered());
 

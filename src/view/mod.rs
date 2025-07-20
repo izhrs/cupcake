@@ -8,9 +8,12 @@ use ratatui::{
 };
 
 use crate::{
-    model::state::{ActivePanel, ActiveTab, Model},
+    model::state::{ActivePanel, ActiveTab, ModalType, Model},
     view::{
-        components::{action_button, add_task, logo, menu, progress_bar, scrollbar, table, tabs},
+        components::{
+            action_button, destination_input_modal, logo, menu, progress_bar, scrollbar,
+            source_input_modal, static_modal, table, tabs,
+        },
         layout::LayoutAreas,
     },
 };
@@ -74,7 +77,21 @@ pub fn draw(
 
     progress_bar::render(model, frame, layout.progress_bar);
 
-    if let ActivePanel::Modal = active_panel {
-        add_task::render(model, frame, layout.modal);
+    if let ActivePanel::Modal(modal_type) = active_panel {
+        match modal_type {
+            ModalType::SourceInput => {
+                source_input_modal::render(model, frame, layout.modal);
+            }
+            ModalType::DestinationInput => {
+                destination_input_modal::render(model, frame, layout.modal);
+            }
+            ModalType::Confirm => {
+                todo!()
+                // Render confirm modal
+            }
+            ModalType::Info | ModalType::Error => {
+                static_modal::render(model, frame, layout.modal, modal_type);
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 use crate::model::{
     downloader::DownloadTask,
-    state::{ActivePanel, ActiveTab},
+    state::{ActivePanel, ActiveTab, ModalType},
 };
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
 
@@ -36,9 +36,11 @@ pub enum Message {
     ApplyCategoryFilterPlaylist,
 
     // Modal actions
-    OpenAddTaskModal,
+    ShowAddTaskModal,
     ToggleFocusedInput,
-    HandleInputEvent(Event),
+    HandleSourceInputEvent(Event),
+    HandleDestinationInputEvent(Event),
+    ExtractMetadata,
     AddTaskSingle,
     CloseModal,
 
@@ -61,14 +63,14 @@ impl Message {
                     return Some(Message::Quit);
                 }
                 KeyCode::Char('n') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    return Some(Message::OpenAddTaskModal);
+                    return Some(Message::ShowAddTaskModal);
                 }
                 _ => {}
             }
 
             match active_panel {
                 ActivePanel::Content => match key.code {
-                    KeyCode::Char('a') => Some(Message::OpenAddTaskModal),
+                    KeyCode::Char('a') => Some(Message::ShowAddTaskModal),
                     KeyCode::Char('q') => Some(Message::Quit),
                     KeyCode::Left | KeyCode::Char('h')
                         if key.modifiers.contains(KeyModifiers::CONTROL) =>
@@ -95,7 +97,7 @@ impl Message {
                 },
 
                 ActivePanel::Menu => match key.code {
-                    KeyCode::Char('a') => Some(Message::OpenAddTaskModal),
+                    KeyCode::Char('a') => Some(Message::ShowAddTaskModal),
                     KeyCode::Char('q') => Some(Message::Quit),
                     KeyCode::Right | KeyCode::Char('l')
                         if key.modifiers.contains(KeyModifiers::CONTROL) =>
@@ -118,16 +120,40 @@ impl Message {
                     _ => None,
                 },
 
-                ActivePanel::Modal => match key.code {
-                    KeyCode::Esc => Some(Message::CloseModal),
-                    KeyCode::Enter => match active_tab {
-                        ActiveTab::Single => Some(Message::AddTaskSingle),
+                ActivePanel::Modal(modal_type) => match modal_type {
+                    ModalType::SourceInput => match key.code {
+                        KeyCode::Esc => Some(Message::CloseModal),
+                        KeyCode::Enter => match active_tab {
+                            ActiveTab::Single => Some(Message::ExtractMetadata),
+                            _ => None,
+                        },
+                        _ => Some(Message::HandleSourceInputEvent(event)),
+                    },
+
+                    ModalType::DestinationInput => match key.code {
+                        KeyCode::Esc => Some(Message::CloseModal),
+                        KeyCode::Enter => Some(Message::AddTaskSingle),
+
+                        KeyCode::Up | KeyCode::Down | KeyCode::Tab | KeyCode::BackTab => {
+                            Some(Message::ToggleFocusedInput)
+                        }
+                        _ => Some(Message::HandleDestinationInputEvent(event)),
+                    },
+
+                    ModalType::Info => match key.code {
+                        KeyCode::Esc => Some(Message::CloseModal),
                         _ => None,
                     },
-                    KeyCode::Up | KeyCode::Down | KeyCode::Tab | KeyCode::BackTab => {
-                        Some(Message::ToggleFocusedInput)
-                    }
-                    _ => Some(Message::HandleInputEvent(event)),
+
+                    ModalType::Error => match key.code {
+                        KeyCode::Esc => Some(Message::CloseModal),
+                        _ => None,
+                    },
+
+                    ModalType::Confirm => match key.code {
+                        KeyCode::Esc | KeyCode::Enter => Some(Message::CloseModal),
+                        _ => None,
+                    },
                 },
             }
         } else {

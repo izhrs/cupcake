@@ -1,6 +1,6 @@
 [package]
 name = "cupcake"
-version = "0.0.24"
+version = "0.0.25"
 edition = "2024"
 description = "A modern TUI download manager"
 authors = ["Mohamed Izhar <mohamed@izhar.xyz>"]

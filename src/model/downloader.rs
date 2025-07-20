@@ -132,7 +132,7 @@ impl DownloadManager {
             .join(separator.to_string().as_str())
     }
 
-    fn extract_filename(source: &str) -> Result<String> {
+    pub fn extract_filename(source: &str) -> Result<String> {
         let name = Command::new("yt-dlp")
             .arg("--no-warnings")
             .arg("--print")
@@ -147,25 +147,30 @@ impl DownloadManager {
         Ok(Self::slugify(String::from_utf8(name)?.as_str(), '_'))
     }
 
-    pub fn start_download(&self, source: &str, destination: PathBuf, tx: UnboundedSender<Message>) {
+    pub fn start_download(
+        &self,
+        source: &str,
+        destination: PathBuf,
+        title: String,
+        tx: UnboundedSender<Message>,
+    ) {
         let source = source.to_string();
         tokio::spawn(async move {
             if let Err(e) = async {
 
                 let id = rand::random::<u64>();
-                let title = Self::extract_filename(&source)?;
 
                 let mut cmd = Command::new("yt-dlp")
-                .arg("--no-warnings")
-                .arg("--newline")
-                .arg("--progress-template")
-                .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
-                .arg(source.clone())
-                .arg("-o")
-                .arg(format!("{}/{}", destination.to_string_lossy(), title))
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .spawn()?;
+                    .arg("--no-warnings")
+                    .arg("--newline")
+                    .arg("--progress-template")
+                    .arg("[CUPCAKE] %(progress._percent_str)s %(progress._total_bytes_str)s %(progress._speed_str)s ETA %(progress._eta_str)s")
+                    .arg(source.clone())
+                    .arg("-o")
+                    .arg(format!("{}/{}", destination.to_string_lossy(), title))
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .spawn()?;
 
                 let stdout = cmd.stdout.take().expect("Failed to capture stdout");
                 let reader = BufReader::new(stdout);

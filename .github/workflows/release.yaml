@@ -1,0 +1,77 @@
+name: Build and Release Binaries
+
+on:
+    push:
+        branches: [main]
+
+permissions:
+    contents: write
+
+jobs:
+    build:
+        name: Build on ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      platform: linux
+                      artifact_name: cupcake
+                      asset_name_prefix: cupcake-linux-amd64
+                      asset_name_suffix: .elf
+                    - os: windows-latest
+                      platform: windows
+                      artifact_name: cupcake.exe
+                      asset_name_prefix: cupcake-windows-amd64
+                      asset_name_suffix: .exe
+                    - os: macos-latest
+                      platform: macos
+                      artifact_name: cupcake
+                      asset_name_prefix: cupcake-macos-arm64
+                      asset_name_suffix:
+                      target: aarch64-apple-darwin
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Extract version
+              id: extract_version
+              run: echo "VERSION=$(grep -m1 'version = ' Cargo.toml | cut -d '\"' -f2)" >> $GITHUB_OUTPUT
+
+            - name: Set up Rust
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: stable
+                  override: true
+                  target: ${{ matrix.target || (matrix.platform == 'windows' && 'x86_64-pc-windows-msvc' || matrix.platform == 'macos' && 'aarch64-apple-darwin' || 'x86_64-unknown-linux-gnu') }}
+
+            - name: Cache Rust dependencies
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      ~/.cargo/registry
+                      ~/.cargo/git
+                      target
+                  key: ${{ runner.os }}-cargo-${{ matrix.platform }}-${{ hashFiles('**/Cargo.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-cargo-${{ matrix.platform }}-
+
+            - name: Build release
+              run: cargo build --release ${{ matrix.target && format('--target={0}', matrix.target) }}
+
+            - name: Prepare binaries directory
+              run: mkdir -p dist
+
+            - name: Copy built binary
+              run: |
+                  BIN_PATH=target/${{ matrix.target || 'release' }}/release/${{ matrix.artifact_name }}
+                  cp $BIN_PATH dist/${{ matrix.asset_name_prefix }}-v${{ steps.extract_version.outputs.VERSION }}${{ matrix.asset_name_suffix || '' }}
+
+            - name: Upload Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: v${{ steps.extract_version.outputs.VERSION }}
+                  files: dist/*
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -42,6 +42,9 @@ A modern and beautiful TUI frontend for yt-dlp, built with Rust and [Ratatui](ht
 
 ## Installation
 
+You can download the latest prebuilt binary from [Releases](https://github.com/izhrs/cupcake/releases).
+
+
 ### Prerequisites
 
 - Rust (latest stable version)
